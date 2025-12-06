@@ -20,14 +20,14 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
   const [isSignInOpen, setIsSignInOpen] = useState(false);
   const [isSignUpOpen, setIsSignUpOpen] = useState(false);
   const [isFeatureDropdownOpen, setIsFeatureDropdownOpen] = useState(false);
-  
+
   const [user, setUser] = useState<any>(() => {
     if (initialAuth.authenticated && initialAuth.userData) {
       return initialAuth.userData;
     }
-    
+
     if (typeof window === "undefined") return null;
-    
+
     try {
       const currentUser = getCurrentUser();
       const token = localStorage.getItem("accessToken");
@@ -36,19 +36,19 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
       return null;
     }
   });
-  
+
   const [authenticated, setAuthenticated] = useState(initialAuth.authenticated || !!user);
-  
+
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     const checkAuth = () => {
       if (typeof window === "undefined") return;
-      
+
       const currentUser = getCurrentUser();
       const token = localStorage.getItem("accessToken");
-      
+
       if (currentUser && token) {
         setUser((prevUser: any) => {
           if (!prevUser || prevUser.user_id !== currentUser.user_id) {
@@ -74,7 +74,7 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
     };
 
     window.addEventListener("storage", handleStorageChange);
-    
+
     return () => {
       clearInterval(interval);
       window.removeEventListener("storage", handleStorageChange);
@@ -94,17 +94,12 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
     { key: "writing", label: "Luyện viết" },
     { key: "listening", label: "Luyện nghe" },
   ];
-  
+
   interface AuthItem {
     key: string;
     label: string;
     onClick: () => void;
   }
-  
-  const authItems: AuthItem[] = [
-    { key: "login", label: "Đăng nhập", onClick: () => setIsSignInOpen(true) },
-    { key: "register", label: "Đăng ký", onClick: () => setIsSignUpOpen(true) },
-  ];
 
   const handleFeatureClick: MenuProps["onClick"] = ({ key }) => {
     router.push(`/features/${key}`);
@@ -128,11 +123,7 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
     ? [
         {
           key: "profile",
-          label: (
-            <Link href="/profile">
-              Hồ sơ
-            </Link>
-          ),
+          label: <Link href="/profile">Hồ sơ</Link>,
         },
         {
           key: "logout",
@@ -186,7 +177,7 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
                 </Link>
               );
             })}
-           
+
             <Dropdown
               menu={{
                 items: featureItems,
@@ -207,7 +198,7 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
                 <span className="font-bold text-white">Tính năng</span>
               </button>
             </Dropdown>
-            
+
             {navLinks.slice(3, 4).map((link) => {
               const isActive = pathname === link.to;
               return (
@@ -228,31 +219,18 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
 
           <div className="flex items-center gap-5">
             {user ? (
-              <Dropdown
-                menu={{ items: userMenuItems }}
-                placement="bottomRight"
-                arrow
-              >
+              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
                 <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-                  <Avatar
-                    src={user.avatar}
-                    icon={<UserOutlined />}
-                    size="large"
-                    className="bg-white text-blue-600"
-                  />
-                  <span className="font-medium text-white">{user.fullname || user.username}</span>
+                  <Avatar src={user.avatar} icon={<UserOutlined />} size="large" className="bg-white text-blue-600" />
+                  {/* <span className="font-medium text-white">{user.fullname || user.username}</span> */}
                 </div>
               </Dropdown>
             ) : (
-              authItems.map((item) => (
-                <Button
-                  key={item?.key}
-                  onClick={item?.onClick}
-                  className="font-medium px-0 border-none cursor-pointer text-white"
-                >
-                  {item?.label}
+              <>
+                <Button type="default" onClick={() => router.push("/auth")}>
+                  Đăng nhập / Đăng ký
                 </Button>
-              ))
+              </>
             )}
           </div>
         </nav>
@@ -260,4 +238,3 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
     </>
   );
 }
-

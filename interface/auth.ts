@@ -59,7 +59,13 @@ export interface SignUpUser {
 }
 
 export interface SignUpResponse {
-  user: SignUpUser;
+  status: boolean;
+  message: string;
+  data: {
+    user: User;
+  };
+  statusCode: number;
+  timestamp: string;
 }
 
 export interface RefreshTokenRequest {

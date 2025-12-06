@@ -30,14 +30,16 @@ export const signUp = async (data: SignUpRequest): Promise<SignUpResponse> => {
   try {
     const response = await apiClient.post<SignUpResponse>("/auth/signup", data);
     
-    const user = response.data.user as any;
-    if (user?.access_token && user?.refresh_token) {
-      setTokens(user.access_token, user.refresh_token);
+    if (response.data.data?.user?.access_token && response.data.data?.user?.refresh_token) {
+      setTokens(
+        response.data.data.user.access_token,
+        response.data.data.user.refresh_token
+      );
       
-      if (typeof window !== "undefined") {
-        const userData = { ...user };
-        delete userData.access_token;
-        delete userData.refresh_token;
+      if (typeof window !== "undefined" && response.data.data.user) {
+        const userData = { ...response.data.data.user };
+        delete (userData as any).access_token;
+        delete (userData as any).refresh_token;
         document.cookie = `user=${JSON.stringify(userData)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
       }
     }

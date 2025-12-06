@@ -2,14 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { Form, Input, Button, Divider, Checkbox, App } from "antd";
-import {
-  UserOutlined,
-  LockOutlined,
-  MailOutlined,
-  GoogleOutlined,
-  FacebookOutlined,
-} from "@ant-design/icons";
+import { UserOutlined, LockOutlined, MailOutlined, GoogleOutlined, FacebookOutlined, HomeOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { signIn, signUp } from "@/lib/api/auth";
 import { getCurrentUser } from "@/lib/api/users";
 
@@ -24,7 +19,7 @@ export default function AuthPage() {
   useEffect(() => {
     const user = getCurrentUser();
     const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
-    
+
     if (user && token) {
       router.push("/profile");
     }
@@ -34,7 +29,7 @@ export default function AuthPage() {
     setLoading(true);
     try {
       const deviceName = navigator.userAgent || "Web Browser";
-      
+
       const response = await signIn({
         emailOrUsername: values.email,
         password: values.password,
@@ -43,10 +38,10 @@ export default function AuthPage() {
 
       if (response.status && response.data?.user) {
         const user = response.data.user;
-        
+
         if (typeof window !== "undefined") {
           localStorage.setItem("user", JSON.stringify(user));
-          
+
           const userData = { ...user };
           delete (userData as any).access_token;
           delete (userData as any).refresh_token;
@@ -68,7 +63,7 @@ export default function AuthPage() {
     try {
       const deviceName = navigator.userAgent || "Web Browser";
       const username = values.email.split("@")[0] || values.name.toLowerCase().replace(/\s+/g, "_");
-      
+
       const response = await signUp({
         username: username,
         fullname: values.name,
@@ -79,26 +74,20 @@ export default function AuthPage() {
         device_name: deviceName,
       });
 
-      if (response.user) {
-        message.success("Đăng ký thành công!");
-        
-        const user = response.user as any;
-        if (user?.access_token && user?.refresh_token) {
-          if (typeof window !== "undefined") {
-            localStorage.setItem("user", JSON.stringify(user));
-            
-            const userData = { ...user };
-            delete userData.access_token;
-            delete userData.refresh_token;
-            document.cookie = `user=${JSON.stringify(userData)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
-          }
-          
-          router.push("/profile");
-        } else {
-          setIsSignUp(false);
-          signInForm.setFieldsValue({ email: values.email });
-          message.info("Vui lòng đăng nhập để tiếp tục");
+      if (response.status && response.data?.user) {
+        const user = response.data.user;
+
+        if (typeof window !== "undefined") {
+          localStorage.setItem("user", JSON.stringify(user));
+
+          const userData = { ...user };
+          delete (userData as any).access_token;
+          delete (userData as any).refresh_token;
+          document.cookie = `user=${JSON.stringify(userData)}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
         }
+
+        message.success("Đăng ký thành công!");
+        router.push("/profile");
       }
     } catch (error: any) {
       message.error(error.message || "Đăng ký thất bại. Vui lòng thử lại!");
@@ -121,31 +110,35 @@ export default function AuthPage() {
         <div className="absolute inset-0 bg-linear-to-br from-blue-600/20 to-teal-500/20"></div>
         <div className="relative z-10 max-w-lg space-y-8 text-white">
           <div className="space-y-6">
-            <h1 className="text-5xl font-bold leading-tight">
-              Giữ sức khỏe học tập trong tay bạn!
-            </h1>
-            <p className="text-xl text-white/90 leading-relaxed">
-              Khám phá nền tảng EduLearn - Nơi học tập trở nên dễ dàng và hiệu quả
-            </p>
+            <h1 className="text-5xl font-bold leading-tight">Giữ sức khỏe học tập trong tay bạn!</h1>
+            <p className="text-xl text-white/90 leading-relaxed">Khám phá nền tảng EduLearn - Nơi học tập trở nên dễ dàng và hiệu quả</p>
           </div>
           <div className="grid grid-cols-2 gap-4 mt-12">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all">
-              <div className="text-3xl mb-3" suppressHydrationWarning>📚</div>
+              <div className="text-3xl mb-3" suppressHydrationWarning>
+                📚
+              </div>
               <h3 className="font-semibold text-white mb-2 text-lg">Học tập</h3>
               <p className="text-sm text-white/80">Tài liệu phong phú</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all">
-              <div className="text-3xl mb-3" suppressHydrationWarning>💬</div>
+              <div className="text-3xl mb-3" suppressHydrationWarning>
+                💬
+              </div>
               <h3 className="font-semibold text-white mb-2 text-lg">Tương tác</h3>
               <p className="text-sm text-white/80">Cộng đồng sôi động</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all">
-              <div className="text-3xl mb-3" suppressHydrationWarning>📊</div>
+              <div className="text-3xl mb-3" suppressHydrationWarning>
+                📊
+              </div>
               <h3 className="font-semibold text-white mb-2 text-lg">Theo dõi</h3>
               <p className="text-sm text-white/80">Tiến độ học tập</p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all">
-              <div className="text-3xl mb-3" suppressHydrationWarning>🎯</div>
+              <div className="text-3xl mb-3" suppressHydrationWarning>
+                🎯
+              </div>
               <h3 className="font-semibold text-white mb-2 text-lg">Mục tiêu</h3>
               <p className="text-sm text-white/80">Đạt thành tích cao</p>
             </div>
@@ -160,20 +153,14 @@ export default function AuthPage() {
               {!isSignUp ? (
                 <span className="text-gray-600 text-sm">
                   Chưa có tài khoản?{" "}
-                  <button
-                    onClick={switchToSignUp}
-                    className="text-blue-600 hover:text-blue-700 font-semibold transition-colors cursor-pointer"
-                  >
+                  <button onClick={switchToSignUp} className="text-blue-600 hover:text-blue-700 font-semibold transition-colors cursor-pointer">
                     Đăng ký miễn phí
                   </button>
                 </span>
               ) : (
                 <span className="text-gray-600 text-sm">
                   Đã có tài khoản?{" "}
-                  <button
-                    onClick={switchToSignIn}
-                    className="text-blue-600 hover:text-blue-700 font-semibold transition-colors cursor-pointer"
-                  >
+                  <button onClick={switchToSignIn} className="text-blue-600 hover:text-blue-700 font-semibold transition-colors cursor-pointer">
                     Đăng nhập
                   </button>
                 </span>
@@ -181,9 +168,7 @@ export default function AuthPage() {
             </div>
 
             <div
-              className={`flex transition-transform duration-700 ease-in-out ${
-                isSignUp ? "-translate-x-1/2" : "translate-x-0"
-              }`}
+              className={`flex transition-transform duration-700 ease-in-out ${isSignUp ? "-translate-x-1/2" : "translate-x-0"}`}
               style={{ width: "200%" }}
             >
               <div className="w-1/2 px-2 shrink-0">
@@ -195,19 +180,10 @@ export default function AuthPage() {
                       </div>
                       <span className="text-2xl font-bold text-gray-900">EduLearn</span>
                     </div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      Đăng nhập vào tài khoản
-                    </h2>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Đăng nhập vào tài khoản</h2>
                   </div>
 
-                  <Form
-                    form={signInForm}
-                    name="signin"
-                    onFinish={handleSignIn}
-                    layout="vertical"
-                    autoComplete="off"
-                    size="large"
-                  >
+                  <Form form={signInForm} name="signin" onFinish={handleSignIn} layout="vertical" autoComplete="off" size="large">
                     {/* Social Login Buttons */}
                     <div className="space-y-3 mb-6">
                       <Button
@@ -255,9 +231,7 @@ export default function AuthPage() {
                     <Form.Item
                       name="password"
                       label={<span className="text-gray-700 font-medium">Mật khẩu</span>}
-                      rules={[
-                        { required: true, message: "Vui lòng nhập mật khẩu!" },
-                      ]}
+                      rules={[{ required: true, message: "Vui lòng nhập mật khẩu!" }]}
                     >
                       <Input.Password
                         placeholder="Nhập mật khẩu của bạn"
@@ -268,14 +242,9 @@ export default function AuthPage() {
                     <Form.Item>
                       <div className="flex items-center justify-between">
                         <Form.Item name="remember" valuePropName="checked" noStyle>
-                          <Checkbox className="text-gray-600 cursor-pointer">
-                            Ghi nhớ đăng nhập
-                          </Checkbox>
+                          <Checkbox className="text-gray-600 cursor-pointer">Ghi nhớ đăng nhập</Checkbox>
                         </Form.Item>
-                        <a
-                          href="#"
-                          className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors cursor-pointer"
-                        >
+                        <a href="#" className="text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors cursor-pointer">
                           Tôi quên mật khẩu
                         </a>
                       </div>
@@ -293,14 +262,26 @@ export default function AuthPage() {
                         Đăng nhập
                       </Button>
                     </Form.Item>
+
+                    <Form.Item>
+                      <Link href="/">
+                        <Button
+                          type="default"
+                          icon={<HomeOutlined />}
+                          block
+                          size="large"
+                          className="h-12 border-gray-300 text-gray-700 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition-all cursor-pointer"
+                        >
+                          Về trang chủ
+                        </Button>
+                      </Link>
+                    </Form.Item>
                   </Form>
                 </div>
               </div>
 
-              {/* Sign Up Form */}
               <div className="w-1/2 px-2 shrink-0">
                 <div className="bg-white rounded-2xl p-8 lg:p-10">
-                  {/* Logo */}
                   <div className="text-center mb-8">
                     <div className="inline-flex items-center gap-2 mb-6">
                       <div className="w-10 h-10 bg-linear-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
@@ -308,19 +289,10 @@ export default function AuthPage() {
                       </div>
                       <span className="text-2xl font-bold text-gray-900">EduLearn</span>
                     </div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">
-                      Tạo tài khoản mới
-                    </h2>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Tạo tài khoản mới</h2>
                   </div>
 
-                  <Form
-                    form={signUpForm}
-                    name="signup"
-                    onFinish={handleSignUp}
-                    layout="vertical"
-                    autoComplete="off"
-                    size="large"
-                  >
+                  <Form form={signUpForm} name="signup" onFinish={handleSignUp} layout="vertical" autoComplete="off" size="large">
                     {/* Social Login Buttons */}
                     <div className="space-y-3 mb-6">
                       <Button
@@ -352,37 +324,35 @@ export default function AuthPage() {
                     </Divider>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Form.Item
-                      name="name"
+                      <Form.Item
+                        name="name"
                         label={<span className="text-gray-700 font-medium">Họ và tên</span>}
-                      rules={[
-                        { required: true, message: "Vui lòng nhập họ tên!" },
-                      ]}
-                    >
-                      <Input
+                        rules={[{ required: true, message: "Vui lòng nhập họ tên!" }]}
+                      >
+                        <Input
                           placeholder="Nhập họ và tên của bạn"
                           className="h-12 rounded-lg border-gray-300 hover:border-blue-400 focus:border-blue-500 transition-colors cursor-text"
-                      />
-                    </Form.Item>
+                        />
+                      </Form.Item>
 
-                    <Form.Item
-                      name="email"
+                      <Form.Item
+                        name="email"
                         label={<span className="text-gray-700 font-medium">Địa chỉ email</span>}
-                      rules={[
-                        { required: true, message: "Vui lòng nhập email!" },
-                        { type: "email", message: "Email không hợp lệ!" },
-                      ]}
-                    >
-                      <Input
+                        rules={[
+                          { required: true, message: "Vui lòng nhập email!" },
+                          { type: "email", message: "Email không hợp lệ!" },
+                        ]}
+                      >
+                        <Input
                           placeholder="example@mail.com"
                           className="h-12 rounded-lg border-gray-300 hover:border-blue-400 focus:border-blue-500 transition-colors"
-                      />
-                    </Form.Item>
+                        />
+                      </Form.Item>
                     </div>
 
                     <Form.Item
                       name="phone"
-                        label={<span className="text-gray-700 font-medium">Số điện thoại</span>}
+                      label={<span className="text-gray-700 font-medium">Số điện thoại</span>}
                       rules={[
                         { required: true, message: "Vui lòng nhập số điện thoại!" },
                         {
@@ -392,58 +362,53 @@ export default function AuthPage() {
                       ]}
                     >
                       <Input
-                          placeholder="0912345678"
-                          className="h-12 rounded-lg border-gray-300 hover:border-blue-400 focus:border-blue-500 transition-colors"
+                        placeholder="0912345678"
+                        className="h-12 rounded-lg border-gray-300 hover:border-blue-400 focus:border-blue-500 transition-colors"
                       />
                     </Form.Item>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Form.Item
-                      name="password"
+                      <Form.Item
+                        name="password"
                         label={<span className="text-gray-700 font-medium">Mật khẩu</span>}
-                      rules={[
-                        { required: true, message: "Vui lòng nhập mật khẩu!" },
-                        {
-                          min: 6,
-                          message: "Mật khẩu phải có ít nhất 6 ký tự!",
-                        },
-                      ]}
-                    >
-                      <Input.Password
+                        rules={[
+                          { required: true, message: "Vui lòng nhập mật khẩu!" },
+                          {
+                            min: 6,
+                            message: "Mật khẩu phải có ít nhất 6 ký tự!",
+                          },
+                        ]}
+                      >
+                        <Input.Password
                           placeholder="Nhập mật khẩu của bạn"
                           className="h-12 rounded-lg border-gray-300 hover:border-blue-400 focus:border-blue-500 transition-colors"
-                      />
-                    </Form.Item>
+                        />
+                      </Form.Item>
 
-                    <Form.Item
-                      name="confirmPassword"
-                      dependencies={["password"]}
+                      <Form.Item
+                        name="confirmPassword"
+                        dependencies={["password"]}
                         label={<span className="text-gray-700 font-medium">Xác nhận mật khẩu</span>}
-                      rules={[
-                        {
-                          required: true,
-                          message: "Vui lòng xác nhận mật khẩu!",
-                        },
-                        ({ getFieldValue }) => ({
-                          validator(_, value) {
-                            if (
-                              !value ||
-                              getFieldValue("password") === value
-                            ) {
-                              return Promise.resolve();
-                            }
-                            return Promise.reject(
-                              new Error("Mật khẩu xác nhận không khớp!")
-                            );
+                        rules={[
+                          {
+                            required: true,
+                            message: "Vui lòng xác nhận mật khẩu!",
                           },
-                        }),
-                      ]}
-                    >
-                      <Input.Password
+                          ({ getFieldValue }) => ({
+                            validator(_, value) {
+                              if (!value || getFieldValue("password") === value) {
+                                return Promise.resolve();
+                              }
+                              return Promise.reject(new Error("Mật khẩu xác nhận không khớp!"));
+                            },
+                          }),
+                        ]}
+                      >
+                        <Input.Password
                           placeholder="Nhập lại mật khẩu"
                           className="h-12 rounded-lg border-gray-300 hover:border-blue-400 focus:border-blue-500 transition-colors cursor-text"
-                      />
-                    </Form.Item>
+                        />
+                      </Form.Item>
                     </div>
 
                     <Form.Item
@@ -451,21 +416,13 @@ export default function AuthPage() {
                       valuePropName="checked"
                       rules={[
                         {
-                          validator: (_, value) =>
-                            value
-                              ? Promise.resolve()
-                              : Promise.reject(
-                                  new Error("Vui lòng đồng ý với điều khoản!")
-                                ),
+                          validator: (_, value) => (value ? Promise.resolve() : Promise.reject(new Error("Vui lòng đồng ý với điều khoản!"))),
                         },
                       ]}
                     >
                       <Checkbox className="text-gray-600 text-sm cursor-pointer">
                         Bằng cách tạo tài khoản, bạn đồng ý với{" "}
-                        <a
-                          href="#"
-                          className="text-blue-600 hover:text-blue-700 hover:underline cursor-pointer"
-                        >
+                        <a href="#" className="text-blue-600 hover:text-blue-700 hover:underline cursor-pointer">
                           Điều khoản sử dụng
                         </a>
                       </Checkbox>
@@ -482,6 +439,20 @@ export default function AuthPage() {
                       >
                         Đăng ký miễn phí
                       </Button>
+                    </Form.Item>
+
+                    <Form.Item>
+                      <Link href="/">
+                        <Button
+                          type="default"
+                          icon={<HomeOutlined />}
+                          block
+                          size="large"
+                          className="h-12 border-gray-300 text-gray-700 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg font-medium transition-all cursor-pointer"
+                        >
+                          Về trang chủ
+                        </Button>
+                      </Link>
                     </Form.Item>
                   </Form>
                 </div>
