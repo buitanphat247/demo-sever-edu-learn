@@ -1,70 +1,43 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { Button, Upload, Table, App, Progress } from "antd";
-import { UploadOutlined, DownloadOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import { UploadOutlined, DownloadOutlined } from "@ant-design/icons";
 import type { UploadFile } from "antd";
-import { createUser } from "@/lib/api/users";
 
-export default function CreateAccountPage() {
-  const router = useRouter();
-  const { message } = App.useApp();
-  const [csvPreviewData, setCsvPreviewData] = useState<any[]>([]);
-  const [uploadFileList, setUploadFileList] = useState<UploadFile[]>([]);
-  const [submitting, setSubmitting] = useState(false);
-
-  return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <Button 
-          icon={<ArrowLeftOutlined />} 
-          onClick={() => {
-            if (submitting) {
-              message.warning("Vui lòng đợi upload xong!");
-              return;
-            }
-            router.push("/super-admin/accounts");
-          }} 
-          type="default"
-          disabled={submitting}
-        >
-          Quay lại
-        </Button>
-      </div>
-
-      <FileUploadForm
-        csvPreviewData={csvPreviewData}
-        setCsvPreviewData={setCsvPreviewData}
-        uploadFileList={uploadFileList}
-        setUploadFileList={setUploadFileList}
-        submitting={submitting}
-        setSubmitting={setSubmitting}
-        onSuccess={() => {
-          router.push("/super-admin/accounts");
-        }}
-      />
-    </div>
-  );
-}
-
-function FileUploadForm({
-  csvPreviewData,
-  setCsvPreviewData,
-  uploadFileList,
-  setUploadFileList,
-  submitting,
-  setSubmitting,
-  onSuccess,
-}: {
+interface CSVUploadFormProps<T> {
+  templatePath: string;
+  templateFileName: string;
   csvPreviewData: any[];
   setCsvPreviewData: (data: any[]) => void;
   uploadFileList: UploadFile[];
   setUploadFileList: (files: UploadFile[]) => void;
   submitting: boolean;
   setSubmitting: (value: boolean) => void;
+  mapCSVToAPI: (csvRow: any) => T | null;
+  createItem: (data: T) => Promise<any>;
+  itemName: string;
+  itemNamePlural: string;
   onSuccess: () => void;
-}) {
+  templateColumns?: Array<{ title: string; dataIndex: string; key: string; width?: number; ellipsis?: boolean }>;
+}
+
+export default function CSVUploadForm<T>({
+  templatePath,
+  templateFileName,
+  csvPreviewData,
+  setCsvPreviewData,
+  uploadFileList,
+  setUploadFileList,
+  submitting,
+  setSubmitting,
+  mapCSVToAPI,
+  createItem,
+  itemName,
+  itemNamePlural,
+  onSuccess,
+  templateColumns,
+}: CSVUploadFormProps<T>) {
   const { message } = App.useApp();
   const [uploadProgress, setUploadProgress] = useState(0);
   const processedFileRef = useRef<string | null>(null);
@@ -75,8 +48,8 @@ function FileUploadForm({
       return;
     }
     const link = document.createElement("a");
-    link.href = "/data/template/account_template.csv";
-    link.download = "account_template.csv";
+    link.href = templatePath;
+    link.download = templateFileName;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -187,51 +160,9 @@ function FileUploadForm({
     reader.readAsText(file, "UTF-8");
   };
 
-  const mapCSVToAPI = (csvRow: any): { username: string; fullname: string; email: string; phone: string; password: string; role_id: number } | null => {
-    try {
-      // Map CSV columns to API format
-      const fullname = csvRow.Fullname || csvRow.fullname || "";
-      const username = csvRow.Username || csvRow.username || "";
-      const phone = csvRow.Phone || csvRow.phone || "";
-      const email = csvRow.Gmail || csvRow.gmail || csvRow.Email || csvRow.email || "";
-      const password = csvRow.Password || csvRow.password || "";
-      const role = csvRow.Role || csvRow.role || "";
-
-      // Convert role to role_id
-      let role_id = 3; // Default to student
-      if (typeof role === "string") {
-        const roleLower = role.toLowerCase();
-        if (roleLower === "admin" || role === "1") {
-          role_id = 1;
-        } else if (roleLower === "teacher" || roleLower === "giảng viên" || role === "2") {
-          role_id = 2;
-        } else if (roleLower === "student" || roleLower === "học sinh" || role === "3") {
-          role_id = 3;
-        }
-      } else if (typeof role === "number") {
-        role_id = role;
-      }
-
-      if (!username || !fullname || !email || !password) {
-        return null;
-      }
-
-      return {
-        username: username.trim(),
-        fullname: fullname.trim(),
-        email: email.trim(),
-        phone: phone.trim() || "",
-        password: password.trim(),
-        role_id,
-      };
-    } catch (error) {
-      return null;
-    }
-  };
-
   const handleSubmit = async () => {
     if (csvPreviewData.length === 0) {
-      message.warning("Vui lòng upload file CSV trước!");
+      message.warning(`Vui lòng upload file CSV trước!`);
       return;
     }
 
@@ -256,7 +187,7 @@ function FileUploadForm({
         }
 
         try {
-          await createUser(apiData);
+          await createItem(apiData);
           results.success++;
         } catch (error: any) {
           results.failed++;
@@ -269,35 +200,25 @@ function FileUploadForm({
       }
 
       if (results.success > 0) {
-        message.success(`Đã tạo thành công ${results.success}/${csvPreviewData.length} tài khoản!`);
+        message.success(`Đã tạo thành công ${results.success}/${csvPreviewData.length} ${itemNamePlural}!`);
       }
 
       if (results.failed > 0) {
-        message.warning(`Có ${results.failed} tài khoản không thể tạo. Vui lòng kiểm tra lại dữ liệu.`);
+        message.warning(`Có ${results.failed} ${itemNamePlural} không thể tạo. Vui lòng kiểm tra lại dữ liệu.`);
       }
 
       if (results.success === csvPreviewData.length) {
         onSuccess();
       }
     } catch (error: any) {
-      message.error(error?.message || "Không thể tạo tài khoản từ file");
+      message.error(error?.message || `Không thể tạo ${itemNamePlural} từ file`);
     } finally {
       setSubmitting(false);
       setUploadProgress(0);
     }
   };
 
-  // Define columns based on template structure - always show these columns
-  const templateColumns = [
-    { title: "Fullname", dataIndex: "Fullname", key: "Fullname", width: 200, ellipsis: true },
-    { title: "Username", dataIndex: "Username", key: "Username", width: 150, ellipsis: true },
-    { title: "Phone", dataIndex: "Phone", key: "Phone", width: 120 },
-    { title: "Gmail", dataIndex: "Gmail", key: "Gmail", width: 200, ellipsis: true },
-    { title: "Role", dataIndex: "Role", key: "Role", width: 100 },
-    { title: "Password", dataIndex: "Password", key: "Password", width: 120 },
-  ];
-
-  // Use template columns if no data, otherwise use dynamic columns from data
+  // Use template columns if provided, otherwise use dynamic columns from data
   const columns =
     csvPreviewData.length > 0
       ? Object.keys(csvPreviewData[0]).map((key) => ({
@@ -307,7 +228,7 @@ function FileUploadForm({
           width: 150,
           ellipsis: true,
         }))
-      : templateColumns;
+      : templateColumns || [];
 
   return (
     <div className="space-y-4">
@@ -322,23 +243,23 @@ function FileUploadForm({
         </Button>
       </div>
 
-      <Upload 
-        accept=".csv" 
-        fileList={uploadFileList} 
-        onChange={handleFileChange} 
+      <Upload
+        accept=".csv"
+        fileList={uploadFileList}
+        onChange={handleFileChange}
         beforeUpload={() => {
           if (submitting) {
             message.warning("Vui lòng đợi upload xong!");
             return false;
           }
           return false;
-        }} 
-        maxCount={1} 
+        }}
+        maxCount={1}
         showUploadList={true}
       >
-        <Button 
-          icon={<UploadOutlined />} 
-          type="primary" 
+        <Button
+          icon={<UploadOutlined />}
+          type="primary"
           className="bg-green-500 hover:bg-green-600 border-0"
           onClick={(e) => {
             if (submitting) {
@@ -356,7 +277,9 @@ function FileUploadForm({
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-800">Preview dữ liệu</h3>
-            <p className="text-sm text-gray-600">{csvPreviewData.length > 0 ? `Tổng cộng: ${csvPreviewData.length} tài khoản` : "Chưa có dữ liệu"}</p>
+            <p className="text-sm text-gray-600">
+              {csvPreviewData.length > 0 ? `Tổng cộng: ${csvPreviewData.length} ${itemNamePlural}` : "Chưa có dữ liệu"}
+            </p>
           </div>
           {csvPreviewData.length > 0 && (
             <Button
@@ -392,15 +315,16 @@ function FileUploadForm({
               : false
           }
           size="small"
-          className="accounts-preview-table"
-        
+          className="csv-preview-table"
         />
       </div>
 
       {submitting && (
         <div className="pt-4">
           <Progress percent={uploadProgress} status="active" />
-          <p className="text-sm text-gray-600 mt-2 text-center">Đang tạo tài khoản... {uploadProgress}%</p>
+          <p className="text-sm text-gray-600 mt-2 text-center">
+            Đang tạo {itemNamePlural}... {uploadProgress}%
+          </p>
         </div>
       )}
 
@@ -416,9 +340,10 @@ function FileUploadForm({
           Hủy
         </Button>
         <Button type="primary" onClick={handleSubmit} loading={submitting} disabled={csvPreviewData.length === 0}>
-          Submit ({csvPreviewData.length} tài khoản)
+          Submit ({csvPreviewData.length} {itemNamePlural})
         </Button>
       </div>
     </div>
   );
 }
+

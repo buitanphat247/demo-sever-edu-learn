@@ -88,6 +88,7 @@ export default function SuperAdminNews() {
       title: "Tiêu đề",
       dataIndex: "title",
       key: "title",
+      width: "50%",
       render: (text: string) => (
         <span className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors duration-200">
           {text}
@@ -98,14 +99,12 @@ export default function SuperAdminNews() {
       title: "Tác giả",
       dataIndex: "author",
       key: "author",
-      width: 120,
       render: (author: string) => <span className="text-gray-600">{author}</span>,
     },
     {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      width: 120,
       render: (status: string) => {
         const statusMap: Record<string, { color: string; text: string }> = {
           published: { color: "green", text: "Đã xuất bản" },
@@ -124,20 +123,17 @@ export default function SuperAdminNews() {
       title: "Lượt xem",
       dataIndex: "views",
       key: "views",
-      width: 100,
       render: (views: number) => <span className="text-gray-600">{views}</span>,
     },
     {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
-      width: 120,
       render: (date: string) => <span className="text-gray-600">{date}</span>,
     },
     {
       title: "Hành động",
       key: "action",
-      width: 200,
       render: (_: any, record: NewsType) => {
         const handleEdit = (e: React.MouseEvent) => {
           e.stopPropagation();
@@ -195,24 +191,9 @@ export default function SuperAdminNews() {
   ];
 
   return (
-    <div className="space-y-3">
-      <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 border border-gray-200">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-2xl font-bold bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Quản lý toàn bộ tin tức
-          </h1>
-          <Button
-            type="default"
-            icon={<PlusOutlined />}
-            size="middle"
-            className="bg-linear-to-r from-blue-500 to-purple-500 border-0 hover:from-blue-600 hover:to-purple-600 shadow-md hover:shadow-lg transition-all duration-300"
-            onClick={() => message.info("Tính năng đang được phát triển")}
-          >
-            Thêm tin tức
-          </Button>
-        </div>
-
-        <div className="flex flex-wrap gap-3 items-center">
+    <div className="space-y-5">
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-3 items-center flex-1">
           <Button
             icon={<SearchOutlined />}
             size="middle"
@@ -235,6 +216,15 @@ export default function SuperAdminNews() {
             <Option value="archived">Đã lưu trữ</Option>
           </Select>
         </div>
+        <Button
+          type="default"
+          icon={<PlusOutlined />}
+          size="middle"
+          className="bg-linear-to-r from-blue-500 to-purple-500 border-0 hover:from-blue-600 hover:to-purple-600 shadow-md hover:shadow-lg transition-all duration-300"
+          onClick={() => message.info("Tính năng đang được phát triển")}
+        >
+          Thêm tin tức
+        </Button>
       </div>
 
       <Table
@@ -244,16 +234,11 @@ export default function SuperAdminNews() {
           position: ["bottomRight"],
           showSizeChanger: true,
           showTotal: (total) => `Tổng ${total} tin tức`,
-          pageSizeOptions: ["10", "20", "50"],
-          className: "px-4 py-3",
           size: "small",
         }}
         className="news-table"
         rowClassName="group hover:bg-linear-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 cursor-pointer border-b border-gray-100"
-        size="small"
-        style={{
-          padding: "0",
-        }}
+ 
       />
     </div>
   );

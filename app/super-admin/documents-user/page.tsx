@@ -193,24 +193,9 @@ export default function SuperAdminDocumentsUser() {
   ];
 
   return (
-    <div className="space-y-3">
-      <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 border border-gray-200">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-2xl font-bold bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Quản lý tài liệu User
-          </h1>
-          <Button
-            type="default"
-            icon={<PlusOutlined />}
-            size="middle"
-            className="bg-linear-to-r from-blue-500 to-purple-500 border-0 hover:from-blue-600 hover:to-purple-600 shadow-md hover:shadow-lg transition-all duration-300"
-            onClick={() => message.info("Tính năng đang được phát triển")}
-          >
-            Thêm tài liệu
-          </Button>
-        </div>
-
-        <div className="flex flex-wrap gap-3 items-center">
+    <div className="space-y-5">
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-3 items-center flex-1">
           <Button
             icon={<SearchOutlined />}
             size="middle"
@@ -247,6 +232,15 @@ export default function SuperAdminDocumentsUser() {
             <Option value="inactive">Không hoạt động</Option>
           </Select>
         </div>
+        <Button
+          type="default"
+          icon={<PlusOutlined />}
+          size="middle"
+          className="bg-linear-to-r from-blue-500 to-purple-500 border-0 hover:from-blue-600 hover:to-purple-600 shadow-md hover:shadow-lg transition-all duration-300"
+          onClick={() => message.info("Tính năng đang được phát triển")}
+        >
+          Thêm tài liệu
+        </Button>
       </div>
 
       <Table

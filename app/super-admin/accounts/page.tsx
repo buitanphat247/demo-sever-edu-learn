@@ -308,45 +308,37 @@ export default function SuperAdminAccounts() {
   ];
 
   return (
-    <div className="space-y-3">
-      <div className="bg-white/90 backdrop-blur-sm rounded-xl p-3 border border-gray-200">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-2xl font-bold bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Quản lý tài khoản
-          </h1>
-          <Space>
-            <Button
-              type="default"
-              icon={<PlusOutlined />}
-              className="bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-300"
-              onClick={() => setIsAddSingleModalOpen(true)}
-              size="middle"
-            >
-              Thêm single
-            </Button>
-            <Button
-              type="default"
-              icon={<UploadOutlined />}
-              className="bg-green-500 hover:bg-green-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-300"
-              onClick={() => router.push("/super-admin/accounts/create")}
-              size="middle"
-            >
-              Thêm file
-            </Button>
-          </Space>
-        </div>
-
-        <div className="flex flex-wrap gap-3 items-center">
-          <Input
-            prefix={loading ? <LoadingOutlined spin /> : <SearchOutlined />}
-            placeholder="Tìm kiếm theo email, số điện thoại, hoặc username..."
-            value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
-            allowClear
-            className="flex-1 min-w-[200px]"
+    <div className="space-y-5">
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <Input
+          prefix={loading ? <LoadingOutlined spin /> : <SearchOutlined />}
+          placeholder="Tìm kiếm theo email, số điện thoại, hoặc username..."
+          value={searchQuery}
+          onChange={(e) => handleSearch(e.target.value)}
+          allowClear
+          className="flex-1 min-w-[200px]"
+          size="middle"
+        />
+        <Space>
+          <Button
+            type="default"
+            icon={<PlusOutlined />}
+            className="bg-blue-500 hover:bg-blue-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-300"
+            onClick={() => setIsAddSingleModalOpen(true)}
             size="middle"
-          />
-        </div>
+          >
+            Thêm single
+          </Button>
+          <Button
+            type="default"
+            icon={<UploadOutlined />}
+            className="bg-green-500 hover:bg-green-600 text-white border-0 shadow-md hover:shadow-lg transition-all duration-300"
+            onClick={() => router.push("/super-admin/accounts/create")}
+            size="middle"
+          >
+            Thêm file
+          </Button>
+        </Space>
       </div>
 
       <Table

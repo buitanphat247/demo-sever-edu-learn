@@ -8,19 +8,29 @@ import {
   DatabaseOutlined,
   CalendarOutlined,
   ArrowRightOutlined,
+  CloudDownloadOutlined,
 } from "@ant-design/icons";
 import { Card } from "antd";
 import { useRouter } from "next/navigation";
 
 const dashboardItems = [
   {
-    icon: ReadOutlined,
-    title: "Quản lý nguồn tài liệu",
-    description: "Quản lý và phân phối tài liệu học tập",
+    icon: CloudDownloadOutlined,
+    title: "Tài liệu Crawl",
+    description: "Quản lý tài liệu được crawl từ các nền tảng bên ngoài",
     gradient: "from-blue-500 to-blue-600",
     iconBg: "bg-blue-100",
     iconColor: "text-blue-600",
-    path: "/super-admin/documents",
+    path: "/super-admin/documents-crawl",
+  },
+  {
+    icon: ReadOutlined,
+    title: "Tài liệu User",
+    description: "Quản lý tài liệu được người dùng upload lên hệ thống",
+    gradient: "from-cyan-500 to-cyan-600",
+    iconBg: "bg-cyan-100",
+    iconColor: "text-cyan-600",
+    path: "/super-admin/documents-user",
   },
   {
     icon: UserOutlined,

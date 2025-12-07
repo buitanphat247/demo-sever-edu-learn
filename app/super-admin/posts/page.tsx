@@ -86,39 +86,31 @@ export default function SuperAdminPosts() {
       dataIndex: "id",
       key: "id",
       width: 80,
-      render: (text: string) => (
-        <span className="text-gray-600 font-mono text-sm bg-gray-50 px-2 py-1 rounded">{text}</span>
-      ),
+      render: (text: string) => <span className="text-gray-600 font-mono text-sm bg-gray-50 px-2 py-1 rounded">{text}</span>,
     },
     {
       title: "Tiêu đề",
       dataIndex: "title",
       key: "title",
-      render: (text: string) => (
-        <span className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors duration-200">
-          {text}
-        </span>
-      ),
+      width: "50%",
+      render: (text: string) => <span className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors duration-200">{text}</span>,
     },
     {
       title: "Tác giả",
       dataIndex: "author",
       key: "author",
-      width: 150,
       render: (author: string) => <span className="text-gray-600">{author}</span>,
     },
     {
       title: "Danh mục",
       dataIndex: "category",
       key: "category",
-      width: 120,
       render: (category: string) => <span className="text-gray-600">{category}</span>,
     },
     {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      width: 120,
       render: (status: string) => {
         const statusMap: Record<string, { color: string; text: string }> = {
           published: { color: "green", text: "Đã xuất bản" },
@@ -133,24 +125,16 @@ export default function SuperAdminPosts() {
         );
       },
     },
-    {
-      title: "Lượt xem",
-      dataIndex: "views",
-      key: "views",
-      width: 100,
-      render: (views: number) => <span className="text-gray-600">{views}</span>,
-    },
+   
     {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
-      width: 120,
       render: (date: string) => <span className="text-gray-600">{date}</span>,
     },
     {
       title: "Hành động",
       key: "action",
-      width: 200,
       render: (_: any, record: PostType) => {
         const handleEdit = (e: React.MouseEvent) => {
           e.stopPropagation();
@@ -208,24 +192,9 @@ export default function SuperAdminPosts() {
   ];
 
   return (
-    <div className="space-y-3">
-      <div className="bg-white/90 backdrop-blur-sm rounded-xl p-4 border border-gray-200">
-        <div className="flex items-center justify-between mb-3">
-          <h1 className="text-2xl font-bold bg-linear-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            Quản lý toàn bộ bài viết
-          </h1>
-          <Button
-            type="default"
-            icon={<PlusOutlined />}
-            size="middle"
-            className="bg-linear-to-r from-blue-500 to-purple-500 border-0 hover:from-blue-600 hover:to-purple-600 shadow-md hover:shadow-lg transition-all duration-300"
-            onClick={() => message.info("Tính năng đang được phát triển")}
-          >
-            Thêm bài viết
-          </Button>
-        </div>
-
-        <div className="flex flex-wrap gap-3 items-center">
+    <div className="space-y-5">
+      <div className="flex flex-wrap gap-3 items-center justify-between">
+        <div className="flex flex-wrap gap-3 items-center flex-1">
           <Button
             icon={<SearchOutlined />}
             size="middle"
@@ -261,6 +230,15 @@ export default function SuperAdminPosts() {
             <Option value="rejected">Từ chối</Option>
           </Select>
         </div>
+        <Button
+          type="default"
+          icon={<PlusOutlined />}
+          size="middle"
+          className="bg-linear-to-r from-blue-500 to-purple-500 border-0 hover:from-blue-600 hover:to-purple-600 shadow-md hover:shadow-lg transition-all duration-300"
+          onClick={() => message.info("Tính năng đang được phát triển")}
+        >
+          Thêm bài viết
+        </Button>
       </div>
 
       <Table
@@ -284,4 +262,3 @@ export default function SuperAdminPosts() {
     </div>
   );
 }
-
