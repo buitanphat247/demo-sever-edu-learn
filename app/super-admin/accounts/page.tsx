@@ -1,15 +1,7 @@
 "use client";
 
 import { Table, Tag, Button, Space, Select, App, Spin, Input, Modal, Form } from "antd";
-import {
-  SearchOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  EyeOutlined,
-  PlusOutlined,
-  LoadingOutlined,
-  UploadOutlined,
-} from "@ant-design/icons";
+import { SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined, PlusOutlined, LoadingOutlined, UploadOutlined } from "@ant-design/icons";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { ColumnsType } from "antd/es/table";
@@ -72,11 +64,20 @@ export default function SuperAdminAccounts() {
 
     isFetching.current = true;
     setLoading(true);
+    const startTime = Date.now();
+
     try {
       const result = await getUsers({ page, limit, search });
-      
+
       const users = result.users || [];
       const total = result.total || 0;
+
+      // Ensure minimum loading time of 1.5 seconds
+      const elapsedTime = Date.now() - startTime;
+      const minLoadingTime = 1500;
+      const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+
+      await new Promise((resolve) => setTimeout(resolve, remainingTime));
 
       if (!users || users.length === 0) {
         setAccounts([]);
@@ -109,6 +110,12 @@ export default function SuperAdminAccounts() {
         total: total,
       }));
     } catch (error: any) {
+      // Ensure minimum loading time even on error
+      const elapsedTime = Date.now() - startTime;
+      const minLoadingTime = 500;
+      const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+      await new Promise((resolve) => setTimeout(resolve, remainingTime));
+
       message.error(error?.message || "Không thể tải danh sách tài khoản");
       setAccounts([]);
     } finally {
@@ -329,12 +336,9 @@ export default function SuperAdminAccounts() {
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
             allowClear
-            disabled={loading}
             className="flex-1 min-w-[200px]"
             size="middle"
           />
-
-      
         </div>
       </div>
 
@@ -404,7 +408,7 @@ function SingleAccountForm({ form, onSuccess }: { form: any; onSuccess: () => vo
   };
 
   return (
-    <Form form={form} layout="vertical" onFinish={handleSubmit} >
+    <Form form={form} layout="vertical" onFinish={handleSubmit}>
       <Form.Item name="fullname" label="Họ và tên" rules={[{ required: true, message: "Vui lòng nhập họ và tên!" }]}>
         <Input placeholder="Nhập họ và tên" />
       </Form.Item>
