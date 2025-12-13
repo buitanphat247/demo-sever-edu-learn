@@ -8,6 +8,7 @@ import CreateClassModal from "@/app/components/classes/CreateClassModal";
 import UpdateClassModal from "@/app/components/classes/UpdateClassModal";
 import { getClasses, deleteClass, getClassById, type ClassResponse, type ClassDetailResponse } from "@/lib/api/classes";
 import type { ClassItem } from "@/interface/classes";
+import { ensureMinLoadingTime, CLASS_STATUS_MAP } from "@/lib/utils/classUtils";
 
 export default function AdminClasses() {
   const { message, modal } = App.useApp();
@@ -36,16 +37,16 @@ export default function AdminClasses() {
   }, [searchQuery]);
 
   // Map API response to component format
-  const mapClassData = (apiClass: ClassResponse): ClassItem => {
+  const mapClassData = useCallback((apiClass: ClassResponse): ClassItem => {
     return {
       key: String(apiClass.class_id),
       name: apiClass.name,
       code: apiClass.code,
       students: apiClass.student_count,
       teacher: apiClass.creator?.fullname || apiClass.creator?.username || "Chưa có",
-      status: apiClass.status === "active" ? "Đang hoạt động" : "Tạm dừng",
+      status: apiClass.status === "active" ? CLASS_STATUS_MAP.active : CLASS_STATUS_MAP.inactive,
     };
-  };
+  }, []);
 
   // Fetch classes
   const fetchClasses = useCallback(async () => {
@@ -61,25 +62,18 @@ export default function AdminClasses() {
       const mappedClasses: ClassItem[] = result.classes.map(mapClassData);
 
       // Ensure minimum loading time
-      const elapsedTime = Date.now() - startTime;
-      const minLoadingTime = 250;
-      const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
-      await new Promise((resolve) => setTimeout(resolve, remainingTime));
+      await ensureMinLoadingTime(startTime);
 
       setClasses(mappedClasses);
       setPagination((prev) => ({ ...prev, total: result.total }));
     } catch (error: any) {
       // Ensure minimum loading time even on error
-      const elapsedTime = Date.now() - startTime;
-      const minLoadingTime = 250;
-      const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
-      await new Promise((resolve) => setTimeout(resolve, remainingTime));
-
+      await ensureMinLoadingTime(startTime);
       message.error(error?.message || "Không thể tải danh sách lớp học");
     } finally {
       setLoading(false);
     }
-  }, [pagination.current, pagination.pageSize, debouncedSearchQuery, message]);
+  }, [pagination.current, pagination.pageSize, debouncedSearchQuery, message, mapClassData]);
 
   // Fetch classes on mount and when dependencies change
   useEffect(() => {

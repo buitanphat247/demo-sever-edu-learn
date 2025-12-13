@@ -23,9 +23,21 @@ export default function StudentDetailModal({ open, onCancel, student, classInfo 
 
   const getStatusColor = (status: string) => {
     if (status === "Đang học" || status === "online") return "green";
-    if (status === "Tạm nghỉ" || status === "offline") return "orange";
-    if (status === "Đã tốt nghiệp") return "blue";
+    if (status === "Bị cấm" || status === "banned") return "red";
     return "default";
+  };
+
+  const getDisplayStatus = (status: string, apiStatus?: string) => {
+    // Ưu tiên apiStatus nếu có (từ class-student status)
+    if (apiStatus === "banned") return "Bị cấm";
+    if (apiStatus === "online") return "Đang học";
+    
+    // Fallback về status
+    if (status === "online" || status === "Đang học") return "Đang học";
+    if (status === "banned" || status === "Bị cấm") return "Bị cấm";
+    
+    // Mặc định là "Đang học"
+    return "Đang học";
   };
 
   // Fetch student profile when modal opens
@@ -66,7 +78,8 @@ export default function StudentDetailModal({ open, onCancel, student, classInfo 
         studentId: studentProfile.username,
         email: studentProfile.email,
         phone: studentProfile.phone || "",
-        status: "Đang học", // API doesn't return status, default to "Đang học"
+        status: student?.apiStatus || student?.status || "online", // Ưu tiên apiStatus từ student prop
+        apiStatus: student?.apiStatus, // Lưu apiStatus để dùng cho getDisplayStatus
         avatar: studentProfile.avatar,
       }
     : student
@@ -76,6 +89,7 @@ export default function StudentDetailModal({ open, onCancel, student, classInfo 
         email: student.email,
         phone: student.phone || "",
         status: student.status,
+        apiStatus: student.apiStatus, // Lưu apiStatus để dùng cho getDisplayStatus
         avatar: null,
       }
     : null;
@@ -105,10 +119,8 @@ export default function StudentDetailModal({ open, onCancel, student, classInfo 
               <Tag color="blue" className="mb-4">
                 {displayData.studentId}
               </Tag>
-              <Tag color={getStatusColor(displayData.status)}>
-                {displayData.status === "online" ? "Đang học" : 
-                 displayData.status === "offline" ? "Tạm nghỉ" : 
-                 displayData.status}
+              <Tag color={getStatusColor(getDisplayStatus(displayData.status, displayData.apiStatus))}>
+                {getDisplayStatus(displayData.status, displayData.apiStatus)}
               </Tag>
             </div>
 
@@ -176,10 +188,8 @@ export default function StudentDetailModal({ open, onCancel, student, classInfo 
                   </span>
                 }
               >
-                <Tag color={getStatusColor(displayData.status)}>
-                  {displayData.status === "online" ? "Đang học" : 
-                   displayData.status === "offline" ? "Tạm nghỉ" : 
-                   displayData.status}
+                <Tag color={getStatusColor(getDisplayStatus(displayData.status, displayData.apiStatus))}>
+                  {getDisplayStatus(displayData.status, displayData.apiStatus)}
                 </Tag>
               </Descriptions.Item>
             </Descriptions>

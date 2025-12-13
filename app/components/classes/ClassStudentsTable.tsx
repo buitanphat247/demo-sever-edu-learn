@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Space, Tag, Table } from "antd";
-import { DeleteOutlined, EyeOutlined, UserAddOutlined, UsergroupAddOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EyeOutlined, UserAddOutlined, UsergroupAddOutlined, StopOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import CustomCard from "@/app/components/common/CustomCard";
 import type { StudentItem } from "@/interface/students";
@@ -12,9 +12,12 @@ interface ClassStudentsTableProps {
   onRemoveStudent: (student: StudentItem) => void;
   onAddSingle?: () => void;
   onAddMultiple?: () => void;
+  onViewBanned?: (student: StudentItem) => void;
+  onViewBannedList?: () => void;
+  onBanStudent?: (student: StudentItem) => void;
 }
 
-export default function ClassStudentsTable({ students, onViewStudent, onRemoveStudent, onAddSingle, onAddMultiple }: ClassStudentsTableProps) {
+export default function ClassStudentsTable({ students, onViewStudent, onRemoveStudent, onAddSingle, onAddMultiple, onViewBanned, onViewBannedList, onBanStudent }: ClassStudentsTableProps) {
 
   const studentColumns: ColumnsType<StudentItem> = [
     {
@@ -38,24 +41,59 @@ export default function ClassStudentsTable({ students, onViewStudent, onRemoveSt
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      render: (status: string) => (
-        <Tag color={status === "Đang học" ? "green" : status === "Tạm nghỉ" ? "orange" : "default"}>{status}</Tag>
-      ),
+      render: (status: string) => {
+        let color = "default";
+        if (status === "Đang học") color = "green";
+        else if (status === "Tạm nghỉ") color = "orange";
+        else if (status === "Bị cấm") color = "red";
+        
+        return <Tag color={color}>{status}</Tag>;
+      },
     },
     {
       title: "Hành động",
       key: "action",
-      width: 150,
-      render: (_: any, record: StudentItem) => (
-        <Space size="small">
-          <Button icon={<EyeOutlined />} size="small" onClick={() => onViewStudent(record)} className="cursor-pointer">
-            Xem
-          </Button>
-          <Button icon={<DeleteOutlined />} size="small" danger onClick={() => onRemoveStudent(record)} className="cursor-pointer">
-            Xóa
-          </Button>
-        </Space>
-      ),
+      width: 200,
+      render: (_: any, record: StudentItem) => {
+        const isBanned = record.apiStatus === "banned";
+        const isOnline = record.apiStatus === "online" || !record.apiStatus;
+        
+        return (
+          <Space size="small">
+            <Button icon={<EyeOutlined />} size="small" onClick={() => onViewStudent(record)} className="cursor-pointer">
+              Xem
+            </Button>
+            {isOnline && onBanStudent && (
+              <Button 
+                icon={<StopOutlined />} 
+                size="small" 
+                danger 
+                onClick={() => {
+                  console.log(record);
+                  onBanStudent(record);
+                }} 
+                className="cursor-pointer"
+              >
+                Cấm
+              </Button>
+            )}
+            {isBanned && onViewBanned && (
+              <Button 
+                icon={<StopOutlined />} 
+                size="small" 
+                danger 
+                onClick={() => onViewBanned(record)} 
+                className="cursor-pointer"
+              >
+                Bị cấm
+              </Button>
+            )}
+            <Button icon={<DeleteOutlined />} size="small" danger onClick={() => onRemoveStudent(record)} className="cursor-pointer">
+              Xóa
+            </Button>
+          </Space>
+        );
+      },
     },
   ];
 
@@ -83,6 +121,18 @@ export default function ClassStudentsTable({ students, onViewStudent, onRemoveSt
           >
             Thêm multiple
           </Button>
+          {onViewBannedList && (
+            <Button
+              type="default"
+              icon={<StopOutlined />}
+              size="middle"
+              danger
+              className="bg-white border-red-300 hover:bg-red-50 shadow-sm"
+              onClick={onViewBannedList}
+            >
+              Danh sách cấm
+            </Button>
+          )}
         </Space>
       }
     >

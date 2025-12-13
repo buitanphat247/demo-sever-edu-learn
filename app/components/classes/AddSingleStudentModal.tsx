@@ -4,15 +4,16 @@ import { Modal, Table, Input, Button, App, Spin } from "antd";
 import { SearchOutlined, UserAddOutlined } from "@ant-design/icons";
 import { useState, useEffect, useCallback } from "react";
 import { getStudents, type StudentResponse } from "@/lib/api/users";
-import { addStudentToClass } from "@/lib/api/classes";
+import { addStudentToClass, type AddStudentToClassResponse } from "@/lib/api/classes";
 import type { ColumnsType } from "antd/es/table";
+import { ensureMinLoadingTime, calculatePaginationAdjustment, DEFAULT_PAGE_SIZE } from "@/lib/utils/classUtils";
 
 interface AddSingleStudentModalProps {
   open: boolean;
   classId: string | number;
   existingStudentIds: (string | number)[];
   onCancel: () => void;
-  onSuccess: (student: StudentResponse) => void;
+  onSuccess: (student: StudentResponse, classStudentResponse: AddStudentToClassResponse) => void;
 }
 
 export default function AddSingleStudentModal({ open, classId, existingStudentIds, onCancel, onSuccess }: AddSingleStudentModalProps) {
@@ -49,31 +50,22 @@ export default function AddSingleStudentModal({ open, classId, existingStudentId
         search: debouncedSearchQuery || undefined,
       });
 
-      // Calculate max page based on total and pageSize
-      const maxPage = Math.ceil(result.total / pagination.pageSize) || 1;
-      let currentPage = pagination.current;
-
-      // If current page has no data and we're not on page 1, go to previous page
-      if (result.students.length === 0 && currentPage > 1) {
-        currentPage = Math.max(1, currentPage - 1);
-      }
-      // If current page exceeds max page, go to max page
-      else if (currentPage > maxPage && maxPage > 0) {
-        currentPage = maxPage;
-      }
+      // Calculate pagination adjustment if needed
+      const adjustedPage = calculatePaginationAdjustment(
+        pagination.current,
+        result.total,
+        pagination.pageSize,
+        result.students.length
+      );
 
       // If page needs adjustment, update pagination and let useEffect trigger new fetch
-      if (currentPage !== pagination.current) {
+      if (adjustedPage !== null) {
         setPagination((prev) => ({
           ...prev,
-          current: currentPage,
+          current: adjustedPage,
           total: result.total,
         }));
-        // Ensure minimum loading time before allowing new fetch
-        const elapsedTime = Date.now() - startTime;
-        const minLoadingTime = 250;
-        const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
-        await new Promise((resolve) => setTimeout(resolve, remainingTime));
+        await ensureMinLoadingTime(startTime);
         setLoading(false);
         return; // Exit early, useEffect will trigger new fetch with adjusted page
       }
@@ -87,16 +79,10 @@ export default function AddSingleStudentModal({ open, classId, existingStudentId
       }));
 
       // Ensure minimum loading time to prevent UI jitter
-      const elapsedTime = Date.now() - startTime;
-      const minLoadingTime = 250;
-      const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
-      await new Promise((resolve) => setTimeout(resolve, remainingTime));
+      await ensureMinLoadingTime(startTime);
     } catch (error: any) {
       // Ensure minimum loading time even on error
-      const elapsedTime = Date.now() - startTime;
-      const minLoadingTime = 250;
-      const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
-      await new Promise((resolve) => setTimeout(resolve, remainingTime));
+      await ensureMinLoadingTime(startTime);
 
       message.error(error?.message || "Không thể tải danh sách học sinh");
     } finally {
@@ -129,7 +115,7 @@ export default function AddSingleStudentModal({ open, classId, existingStudentId
   const handleAddStudent = async (student: StudentResponse) => {
     try {
       // Gọi API để thêm học sinh vào lớp
-      await addStudentToClass({
+      const response = await addStudentToClass({
         class_id: classId,
         user_id: student.user_id,
       });
@@ -137,8 +123,8 @@ export default function AddSingleStudentModal({ open, classId, existingStudentId
       // Loại bỏ học sinh vừa thêm khỏi danh sách hiện tại
       setStudents((prev) => prev.filter((s) => s.user_id !== student.user_id));
 
-      // Gọi callback để cập nhật UI
-      onSuccess(student);
+      // Gọi callback để cập nhật UI, truyền cả response để có classStudentId
+      onSuccess(student, response);
 
       // Re-fetch để cập nhật danh sách (API đã tự động filter học sinh đã thêm)
       setTimeout(() => {

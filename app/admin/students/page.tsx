@@ -7,10 +7,10 @@ import StudentDetailModal from "@/app/components/students/StudentDetailModal";
 import type { StudentItem } from "@/interface/students";
 
 const data: StudentItem[] = [
-  { key: "1", name: "Nguyễn Văn A", studentId: "HS001", class: "10A1", email: "nguyenvana@example.com", phone: "0987654321", status: "Đang học" },
-  { key: "2", name: "Trần Thị B", studentId: "HS002", class: "10A1", email: "tranthib@example.com", phone: "0987654322", status: "Đang học" },
-  { key: "3", name: "Lê Văn C", studentId: "HS003", class: "11B2", email: "levanc@example.com", phone: "0987654323", status: "Tạm nghỉ" },
-  { key: "4", name: "Phạm Thị D", studentId: "HS004", class: "12C1", email: "phamthid@example.com", phone: "0987654324", status: "Đã tốt nghiệp" },
+  { key: "1", userId: 1, name: "Nguyễn Văn A", studentId: "HS001", class: "10A1", email: "nguyenvana@example.com", phone: "0987654321", status: "Đang học" },
+  { key: "2", userId: 2, name: "Trần Thị B", studentId: "HS002", class: "10A1", email: "tranthib@example.com", phone: "0987654322", status: "Đang học" },
+  { key: "3", userId: 3, name: "Lê Văn C", studentId: "HS003", class: "11B2", email: "levanc@example.com", phone: "0987654323", status: "Tạm nghỉ" },
+  { key: "4", userId: 4, name: "Phạm Thị D", studentId: "HS004", class: "12C1", email: "phamthid@example.com", phone: "0987654324", status: "Đã tốt nghiệp" },
 ];
 
 export default function AdminStudents() {

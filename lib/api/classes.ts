@@ -18,11 +18,13 @@ export interface ClassResponse {
 }
 
 export interface ClassStudent {
+  id?: number | string; // ID của bản ghi class-student
   user_id: number | string;
   username: string;
   fullname: string;
   email: string;
   avatar: string;
+  status?: string; // Status từ class-students API: "online" | "banned"
 }
 
 export interface ClassDetailResponse extends ClassResponse {
@@ -305,6 +307,171 @@ export const deleteClass = async (classId: number | string): Promise<void> => {
     });
   } catch (error: any) {
     const errorMessage = error?.response?.data?.message || error?.message || "Không thể xóa lớp học";
+    throw new Error(errorMessage);
+  }
+};
+
+export interface UpdateClassStudentStatusParams {
+  id: number | string; // ID của bản ghi class-student
+  status: "online" | "banned";
+}
+
+export interface UpdateClassStudentStatusResponse {
+  id: number;
+  class_id: number;
+  user_id: number;
+  status: string;
+  class: {
+    class_id: number;
+    name: string;
+    code: string;
+    student_count: number;
+    status: string;
+  };
+  student: {
+    user_id: number;
+    username: string;
+    fullname: string;
+    email: string;
+    avatar: string | null;
+  };
+  added_at: string;
+}
+
+export interface UpdateClassStudentStatusApiResponse {
+  status: boolean;
+  message: string;
+  data: UpdateClassStudentStatusResponse;
+  statusCode: number;
+  timestamp: string;
+}
+
+export interface GetClassStudentsParams {
+  page?: number;
+  limit?: number;
+  classId?: number | string;
+  userId?: number | string;
+}
+
+export interface ClassStudentRecord {
+  id: number | string;
+  class_id: number | string;
+  user_id: number | string;
+  status: string;
+  added_at: string;
+  class?: {
+    class_id: number;
+    name: string;
+    code: string;
+    student_count: number;
+    status: string;
+  };
+  student?: {
+    user_id: number;
+    username: string;
+    fullname: string;
+    email: string;
+    avatar: string | null;
+  };
+}
+
+export interface GetClassStudentsApiResponse {
+  status: boolean;
+  message: string;
+  data: ClassStudentRecord[];
+  statusCode: number;
+  timestamp: string;
+}
+
+export const getClassStudentId = async (classId: number | string, userId: number | string): Promise<number | string | null> => {
+  try {
+    const response = await apiClient.get<GetClassStudentsApiResponse>("/class-students", {
+      params: {
+        page: 1,
+        limit: 1000, // Lấy tất cả để tìm
+      },
+    });
+
+    if (response.data.status && response.data.data) {
+      const classStudentId = typeof classId === "string" ? Number(classId) : classId;
+      const studentUserId = typeof userId === "string" ? Number(userId) : userId;
+
+      // Tìm record có class_id và user_id khớp
+      const record = response.data.data.find(
+        (item) => Number(item.class_id) === classStudentId && Number(item.user_id) === studentUserId
+      );
+
+      return record ? record.id : null;
+    }
+
+    return null;
+  } catch (error: any) {
+    console.error("Error fetching class-student id:", error);
+    return null;
+  }
+};
+
+export const updateClassStudentStatus = async (params: UpdateClassStudentStatusParams): Promise<UpdateClassStudentStatusResponse> => {
+  try {
+    const id = typeof params.id === "string" ? Number(params.id) : params.id;
+
+    const response = await apiClient.patch<UpdateClassStudentStatusApiResponse>(
+      `/class-students/${id}/status`,
+      { status: params.status },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    if (response.data.status && response.data.data) {
+      return response.data.data;
+    }
+
+    throw new Error(response.data.message || "Không thể cập nhật trạng thái học sinh");
+  } catch (error: any) {
+    const errorMessage = error?.response?.data?.message || error?.message || "Không thể cập nhật trạng thái học sinh";
+    throw new Error(errorMessage);
+  }
+};
+
+// Get banned students by class
+export interface GetBannedStudentsParams {
+  classId: number | string;
+  page?: number;
+  limit?: number;
+}
+
+export interface GetBannedStudentsApiResponse {
+  status: boolean;
+  message: string;
+  data: ClassStudentRecord[];
+  statusCode: number;
+  timestamp: string;
+}
+
+export const getBannedStudents = async (params: GetBannedStudentsParams): Promise<ClassStudentRecord[]> => {
+  try {
+    const classId = typeof params.classId === "string" ? Number(params.classId) : params.classId;
+
+    const response = await apiClient.get<GetBannedStudentsApiResponse>(
+      `/class-students/banned/by-class/${classId}`,
+      {
+        params: {
+          page: params.page || 1,
+          limit: params.limit || 10,
+        },
+      }
+    );
+
+    if (response.data.status && response.data.data) {
+      return response.data.data;
+    }
+
+    return [];
+  } catch (error: any) {
+    const errorMessage = error?.response?.data?.message || error?.message || "Không thể lấy danh sách học sinh bị cấm";
     throw new Error(errorMessage);
   }
 };
