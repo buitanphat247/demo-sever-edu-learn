@@ -12,7 +12,7 @@ import AIChatPanel from "../components/layout/AIChatPanel";
 const pageTitles: Record<string, string> = {
   "/admin": "Dashboard",
   "/admin/exercises": "Quản lý Bài tập",
-  "/admin/news": "Quản lý Tin tức",
+  "/admin/notification": "Quản lý Thông báo",
   "/admin/classes": "Quản lý Lớp học",
   "/admin/students": "Quản lý Học sinh",
   "/admin/class-chat": "Chat / Hỏi đáp",

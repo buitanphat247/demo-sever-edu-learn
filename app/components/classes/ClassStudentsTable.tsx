@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Button, Space, Tag, Table } from "antd";
 import { DeleteOutlined, EyeOutlined, UserAddOutlined, UsergroupAddOutlined, StopOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
@@ -17,7 +18,7 @@ interface ClassStudentsTableProps {
   onBanStudent?: (student: StudentItem) => void;
 }
 
-export default function ClassStudentsTable({ students, onViewStudent, onRemoveStudent, onAddSingle, onAddMultiple, onViewBanned, onViewBannedList, onBanStudent }: ClassStudentsTableProps) {
+function ClassStudentsTable({ students, onViewStudent, onRemoveStudent, onAddSingle, onAddMultiple, onViewBanned, onViewBannedList, onBanStudent }: ClassStudentsTableProps) {
 
   const studentColumns: ColumnsType<StudentItem> = [
     {
@@ -140,3 +141,5 @@ export default function ClassStudentsTable({ students, onViewStudent, onRemoveSt
     </CustomCard>
   );
 }
+
+export default memo(ClassStudentsTable);

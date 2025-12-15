@@ -1,11 +1,13 @@
 "use client";
 
-import { Modal, Form, Input, Button, App } from "antd";
+import { Modal, Form, Input, Select, Button, App } from "antd";
 import { useState, useEffect } from "react";
 import { createNotification, type CreateNotificationParams, type NotificationResponse } from "@/lib/api/notifications";
+import { getClassesByUser, type ClassResponse } from "@/lib/api/classes";
 import { getUserIdFromCookie } from "@/lib/utils/cookies";
 
 const { TextArea } = Input;
+const { Option } = Select;
 
 interface CreateNotificationModalProps {
   open: boolean;
@@ -17,12 +19,38 @@ export default function CreateNotificationModal({ open, onCancel, onSuccess }: C
   const [form] = Form.useForm();
   const { message } = App.useApp();
   const [submitting, setSubmitting] = useState(false);
+  const [loadingClasses, setLoadingClasses] = useState(false);
+  const [classes, setClasses] = useState<ClassResponse[]>([]);
 
   useEffect(() => {
     if (open) {
       form.resetFields();
+      fetchClasses();
     }
   }, [open, form]);
+
+  // Fetch classes when modal opens
+  const fetchClasses = async () => {
+    const userId = getUserIdFromCookie();
+    if (!userId) {
+      message.error("Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.");
+      return;
+    }
+
+    setLoadingClasses(true);
+    try {
+      const result = await getClassesByUser({
+        userId: userId,
+        page: 1,
+        limit: 1000, // Lấy tất cả lớp học
+      });
+      setClasses(result.classes);
+    } catch (error: any) {
+      message.error(error?.message || "Không thể tải danh sách lớp học");
+    } finally {
+      setLoadingClasses(false);
+    }
+  };
 
   const handleSubmit = async (values: any) => {
     setSubmitting(true);
@@ -34,18 +62,27 @@ export default function CreateNotificationModal({ open, onCancel, onSuccess }: C
         return;
       }
 
+      const classId = values.class_id;
+      if (!classId) {
+        message.error("Vui lòng chọn lớp học");
+        setSubmitting(false);
+        return;
+      }
+
       const numericUserId = typeof userId === "string" ? Number(userId) : userId;
+
       const params: CreateNotificationParams = {
         title: values.title,
         message: values.message,
-        scope: "all", // Luôn gửi "all" (Tất cả)
+        scope: "class",
+        scope_id: Number(classId),
         created_by: numericUserId,
       };
-
       const created = await createNotification(params);
+      onSuccess(created);
+
       message.success("Tạo thông báo thành công!");
       form.resetFields();
-      onSuccess(created);
     } catch (error: any) {
       message.error(error?.message || "Không thể tạo thông báo");
     } finally {
@@ -82,7 +119,15 @@ export default function CreateNotificationModal({ open, onCancel, onSuccess }: C
             { max: 255, message: "Tiêu đề không được vượt quá 255 ký tự" },
           ]}
         >
-          <Input placeholder="Nhập tiêu đề thông báo" disabled={submitting} size="middle" />
+          <Input
+            placeholder="Nhập tiêu đề thông báo"
+            disabled={submitting}
+            size="middle"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
+          />
         </Form.Item>
 
         <Form.Item
@@ -101,6 +146,26 @@ export default function CreateNotificationModal({ open, onCancel, onSuccess }: C
             autoCapitalize="off"
             spellCheck={false}
           />
+        </Form.Item>
+
+        <Form.Item
+          name="class_id"
+          label="Lớp học"
+          rules={[{ required: true, message: "Vui lòng chọn lớp học" }]}
+        >
+          <Select
+            placeholder="Chọn lớp học"
+            disabled={submitting || loadingClasses}
+            size="middle"
+            loading={loadingClasses}
+            allowClear
+          >
+            {classes.map((cls) => (
+              <Option key={cls.class_id} value={cls.class_id}>
+                {cls.name}
+              </Option>
+            ))}
+          </Select>
         </Form.Item>
 
         <Form.Item className="mb-0">

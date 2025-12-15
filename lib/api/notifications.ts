@@ -5,6 +5,7 @@ export interface CreateNotificationParams {
   message: string;
   scope: "all" | "user" | "class";
   scope_id?: number;
+  created_by?: number;
 }
 
 export interface NotificationResponse {
@@ -15,6 +16,14 @@ export interface NotificationResponse {
   scope_id: number | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface UpdateNotificationParams {
+  title?: string;
+  message?: string;
+  scope?: "all" | "user" | "class";
+  scope_id?: number | null;
+  created_by?: number;
 }
 
 export interface CreateNotificationApiResponse {
@@ -37,6 +46,80 @@ export interface GetNotificationsResult {
   page: number;
   limit: number;
 }
+
+export interface GetNotificationsByCreatedByParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+export interface GetNotificationsByCreatedByResponse {
+  data: NotificationResponse[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export const getNotificationsByScope = async (
+  scope: "all" | "user" | "class",
+  scopeId?: number
+): Promise<NotificationResponse[]> => {
+  try {
+    const response = await apiClient.get(`/notifications/by-scope/${scope}`, {
+      params: scope !== "all" ? { scope_id: scopeId } : undefined,
+    });
+
+    const data = response.data?.data ?? [];
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    return data;
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Không thể lấy danh sách thông báo";
+    throw new Error(errorMessage);
+  }
+};
+
+export const getNotificationsByCreatedBy = async (
+  userId: number | string,
+  params?: GetNotificationsByCreatedByParams
+): Promise<GetNotificationsByCreatedByResponse> => {
+  try {
+    const numericId = typeof userId === "string" ? parseInt(userId, 10) : userId;
+    if (Number.isNaN(numericId)) {
+      throw new Error("User ID không hợp lệ");
+    }
+
+    const requestParams: Record<string, any> = {
+      page: params?.page ?? 1,
+      limit: params?.limit ?? 10,
+    };
+
+    if (params?.search && params.search.trim()) {
+      requestParams.search = params.search.trim();
+    }
+
+    const response = await apiClient.get(`/notifications/by-created-by/${numericId}`, {
+      params: requestParams,
+    });
+
+    const data = response.data?.data || {};
+    const list = Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : [];
+
+    return {
+      data: list,
+      total: data.total ?? data.pagination?.total ?? list.length ?? 0,
+      page: data.page ?? params?.page ?? 1,
+      limit: data.limit ?? params?.limit ?? 10,
+    };
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Không thể lấy danh sách thông báo";
+    throw new Error(errorMessage);
+  }
+};
 
 export const getNotifications = async (params?: GetNotificationsParams): Promise<GetNotificationsResult> => {
   try {
@@ -117,4 +200,46 @@ export const createNotification = async (params: CreateNotificationParams): Prom
     throw new Error(errorMessage);
   }
 };
+
+export const updateNotification = async (
+  notificationId: number | string,
+  params: UpdateNotificationParams
+): Promise<NotificationResponse> => {
+  try {
+    const id = typeof notificationId === "string" ? parseInt(notificationId, 10) : notificationId;
+    if (Number.isNaN(id)) {
+      throw new Error("ID thông báo không hợp lệ");
+    }
+
+    const response = await apiClient.patch(`/notifications/${id}`, params, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = response.data?.data || response.data;
+    return data as NotificationResponse;
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Không thể cập nhật thông báo";
+    throw new Error(errorMessage);
+  }
+};
+
+export const deleteNotification = async (notificationId: number | string): Promise<void> => {
+  try {
+    const id = typeof notificationId === "string" ? parseInt(notificationId, 10) : notificationId;
+    if (Number.isNaN(id)) {
+      throw new Error("ID thông báo không hợp lệ");
+    }
+
+    await apiClient.delete(`/notifications/${id}`);
+    // API trả về 204, không cần xử lý body
+  } catch (error: any) {
+    const errorMessage =
+      error?.response?.data?.message || error?.message || "Không thể xóa thông báo";
+    throw new Error(errorMessage);
+  }
+};
+
 

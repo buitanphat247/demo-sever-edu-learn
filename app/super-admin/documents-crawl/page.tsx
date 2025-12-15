@@ -1,8 +1,8 @@
 "use client";
 
-import { Table, Tag, Button, Select, App, Space } from "antd";
+import { Table, Tag, Button, Select, App, Space, Input } from "antd";
 import { SearchOutlined, EyeOutlined, DownloadOutlined, LoadingOutlined } from "@ant-design/icons";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import type { ColumnsType } from "antd/es/table";
 import { getDocumentAttachmentsCrawl, type DocumentAttachmentCrawl } from "@/lib/api/documents";
@@ -32,6 +32,8 @@ export default function SuperAdminDocumentsCrawl() {
   const { previewDoc, openPreview, closePreview, handleAfterClose, isOpen } = useDocumentPreview();
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [selectedMonHoc, setSelectedMonHoc] = useState<string | undefined>();
+  const [selectedFileType, setSelectedFileType] = useState<string | undefined>();
+  const [searchQuery, setSearchQuery] = useState("");
   const [documents, setDocuments] = useState<DocumentTableType[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -41,6 +43,11 @@ export default function SuperAdminDocumentsCrawl() {
   });
   const hasFetched = useRef(false);
   const isFetching = useRef(false);
+  const searchDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const pageSizeRef = useRef(20);
+  const prevSearchQueryRef = useRef("");
+  const prevFileTypeRef = useRef<string | undefined>(undefined);
+  const initialFetchDone = useRef(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -57,7 +64,8 @@ export default function SuperAdminDocumentsCrawl() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isSearchModalOpen]);
 
-  const fetchDocuments = async (page: number = 1, limit: number = 10) => {
+  const fetchDocuments = useCallback(async (page: number = 1, limit: number = 10, fileName?: string, fileType?: string) => {
+    // Prevent multiple simultaneous fetches
     if (isFetching.current) {
       return;
     }
@@ -67,7 +75,7 @@ export default function SuperAdminDocumentsCrawl() {
     const startTime = Date.now();
 
     try {
-      const result = await getDocumentAttachmentsCrawl({ page, limit });
+      const result = await getDocumentAttachmentsCrawl({ page, limit, fileName, fileType });
 
       const formattedData: DocumentTableType[] = result.documents.map((doc: DocumentAttachmentCrawl) => ({
         key: doc.id.toString(),
@@ -97,32 +105,93 @@ export default function SuperAdminDocumentsCrawl() {
         pageSize: limit,
         total: result.total,
       }));
+      pageSizeRef.current = limit;
     } catch (error: any) {
+      // Ensure minimum loading time even on error
+      const elapsedTime = Date.now() - startTime;
+      const minLoadingTime = 250;
+      const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+      await new Promise((resolve) => setTimeout(resolve, remainingTime));
+      
       message.error(error?.message || "Không thể tải danh sách tài liệu crawl");
       setDocuments([]);
     } finally {
       setLoading(false);
       isFetching.current = false;
     }
-  };
-
-  useEffect(() => {
-    if (!hasFetched.current) {
-      hasFetched.current = true;
-      fetchDocuments(pagination.current, pagination.pageSize);
-    }
   }, []);
 
-  const handleTableChange = (page: number, pageSize: number) => {
-    if (!isFetching.current) {
-      fetchDocuments(page, pageSize);
+  // Initial fetch only once on mount - prevent double fetch even in Strict Mode
+  useEffect(() => {
+    // Double check to prevent fetch in Strict Mode double render
+    if (initialFetchDone.current || hasFetched.current) {
+      return;
     }
-  };
+    
+    initialFetchDone.current = true;
+    hasFetched.current = true;
+    fetchDocuments(1, pageSizeRef.current, undefined, undefined);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const filteredData = documents.filter((item) => {
-    const matchesMonHoc = !selectedMonHoc || item.documentMonHoc.includes(selectedMonHoc);
-    return matchesMonHoc;
-  });
+  // Debounce search query and fileType - only after initial fetch and when values actually change
+  useEffect(() => {
+    // Skip on initial mount
+    if (!hasFetched.current) {
+      // Store initial values
+      prevSearchQueryRef.current = searchQuery;
+      prevFileTypeRef.current = selectedFileType;
+      return;
+    }
+
+    // Check if values actually changed
+    const searchChanged = prevSearchQueryRef.current !== searchQuery;
+    const fileTypeChanged = prevFileTypeRef.current !== selectedFileType;
+
+    // Only proceed if something actually changed
+    if (!searchChanged && !fileTypeChanged) {
+      return;
+    }
+
+    // Update refs
+    prevSearchQueryRef.current = searchQuery;
+    prevFileTypeRef.current = selectedFileType;
+
+    // Clear previous timeout
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+
+    // Set new timeout
+    searchDebounceRef.current = setTimeout(() => {
+      // Reset to page 1 when search query or fileType changes
+      setPagination((prev) => ({ ...prev, current: 1 }));
+      fetchDocuments(1, pageSizeRef.current, searchQuery.trim() || undefined, selectedFileType);
+    }, 500); // 500ms debounce
+
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, selectedFileType]);
+
+  const handleTableChange = useCallback((page: number, pageSize: number) => {
+    if (!isFetching.current) {
+      pageSizeRef.current = pageSize;
+      fetchDocuments(page, pageSize, searchQuery.trim() || undefined, selectedFileType);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchQuery, selectedFileType]);
+
+  // Filter data based on selectedMonHoc (client-side filter for môn học)
+  const filteredData = useMemo(() => {
+    return documents.filter((item) => {
+      const matchesMonHoc = !selectedMonHoc || item.documentMonHoc.includes(selectedMonHoc);
+      return matchesMonHoc;
+    });
+  }, [documents, selectedMonHoc]);
 
   const formatFileSize = (bytes: string) => {
     const size = parseInt(bytes, 10);
@@ -139,7 +208,7 @@ export default function SuperAdminDocumentsCrawl() {
 
   const uniqueMonHoc = Array.from(new Set(documents.map((doc) => doc.documentMonHoc).filter(Boolean)));
 
-  const columns: ColumnsType<DocumentTableType> = [
+  const columns: ColumnsType<DocumentTableType> = useMemo(() => [
     {
       title: "STT",
       dataIndex: "id",
@@ -250,11 +319,38 @@ export default function SuperAdminDocumentsCrawl() {
         );
       },
     },
-  ];
+  ], [pagination.current, pagination.pageSize, message, openPreview]);
 
   return (
     <div className="space-y-3">
-      
+      {/* Search Bar and Filters */}
+      <div className="flex gap-3">
+        <Input
+          placeholder="Tìm kiếm tài liệu theo tên file, loại file, tác giả..."
+          prefix={<SearchOutlined className="text-gray-400" />}
+          size="large"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          allowClear
+          className="flex-1"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+        />
+        <Select
+          placeholder="Lọc theo loại file"
+          size="large"
+          value={selectedFileType}
+          onChange={setSelectedFileType}
+          allowClear
+          style={{ width: 200 }}
+        >
+          <Option value="pdf">PDF</Option>
+          <Option value="docx">Word</Option>
+          <Option value="powerpoint">PowerPoint</Option>
+        </Select>
+      </div>
 
       <Table
         columns={columns}

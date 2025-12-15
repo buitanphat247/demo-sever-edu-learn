@@ -1,15 +1,14 @@
 "use client";
 
-import { Table, Tag, Button, Space, Select, App, Input, Spin } from "antd";
+import { Table, Tag, Button, Space, App, Input, Spin } from "antd";
 import { SearchOutlined, EditOutlined, DeleteOutlined, EyeOutlined, PlusOutlined, LoadingOutlined } from "@ant-design/icons";
-import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { ColumnsType } from "antd/es/table";
 import CreateNotificationModal from "@/app/components/super-admin/CreateNotificationModal";
+import EditNotificationModal from "@/app/components/super-admin/EditNotificationModal";
 import NotificationDetailModal from "@/app/components/super-admin/NotificationDetailModal";
-import { getNotifications, type NotificationResponse } from "@/lib/api/notifications";
-
-const { Option } = Select;
+import { getNotificationsByCreatedBy, deleteNotification, type NotificationResponse } from "@/lib/api/notifications";
+import { getUserIdFromCookie } from "@/lib/utils/cookies";
 
 interface NotificationType {
   key: string;
@@ -22,23 +21,24 @@ interface NotificationType {
 }
 
 export default function SuperAdminNotifications() {
-  const router = useRouter();
   const { modal, message } = App.useApp();
-  const [notifications, setNotifications] = useState<NotificationType[]>([]);
+  const [allNotifications, setAllNotifications] = useState<NotificationType[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedNotificationId, setSelectedNotificationId] = useState<number | string | null>(null);
+  const [editingNotification, setEditingNotification] = useState<NotificationType | null>(null);
   const [pagination, setPagination] = useState({
     current: 1,
-    pageSize: 20,
+    pageSize: 10,
     total: 0,
   });
 
   // Format date từ ISO string sang định dạng Việt Nam
-  const formatDate = (dateString: string): string => {
+  const formatDate = useCallback((dateString: string): string => {
     const date = new Date(dateString);
     return date.toLocaleString("vi-VN", {
       year: "numeric",
@@ -47,31 +47,36 @@ export default function SuperAdminNotifications() {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
+  }, []);
 
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
       setPagination((prev) => ({ ...prev, current: 1 })); // Reset to page 1 when search changes
-    }, 500);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
   // Fetch notifications
-  const fetchNotifications = useCallback(async () => {
+  const fetchNotifications = useCallback(async (page: number = 1, limit: number = 10, search?: string) => {
+    const userId = getUserIdFromCookie();
+    if (!userId) {
+      message.error("Không tìm thấy thông tin người dùng (cookie)");
+      return;
+    }
+
     const startTime = Date.now();
     try {
       setLoading(true);
-      const result = await getNotifications({
-        page: pagination.current,
-        limit: pagination.pageSize,
-        search: debouncedSearchQuery || undefined,
+      const result = await getNotificationsByCreatedBy(userId, {
+        page,
+        limit,
+        search: search?.trim() || undefined,
       });
 
-      // Map API response to component format
-      const mappedNotifications: NotificationType[] = result.notifications.map((notif) => ({
+      const mappedNotifications: NotificationType[] = (result.data || []).map((notif) => ({
         key: String(notif.notification_id),
         id: String(notif.notification_id),
         title: notif.title,
@@ -87,8 +92,13 @@ export default function SuperAdminNotifications() {
       const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
       await new Promise((resolve) => setTimeout(resolve, remainingTime));
 
-      setNotifications(mappedNotifications);
-      setPagination((prev) => ({ ...prev, total: result.total }));
+      setAllNotifications(mappedNotifications);
+      setPagination((prev) => ({
+        ...prev,
+        current: result.page || page,
+        pageSize: result.limit || limit,
+        total: result.total || mappedNotifications.length,
+      }));
     } catch (error: any) {
       // Ensure minimum loading time even on error
       const elapsedTime = Date.now() - startTime;
@@ -100,18 +110,33 @@ export default function SuperAdminNotifications() {
     } finally {
       setLoading(false);
     }
-  }, [pagination.current, pagination.pageSize, debouncedSearchQuery, message]);
+  }, [message]);
 
   // Fetch notifications on mount and when dependencies change
   useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+    fetchNotifications(pagination.current, pagination.pageSize, debouncedSearchQuery);
+  }, [fetchNotifications, pagination.current, pagination.pageSize, debouncedSearchQuery]);
 
-  const handleTableChange = (page: number, pageSize: number) => {
+  const handleTableChange = useCallback((page: number, pageSize: number) => {
     setPagination((prev) => ({ ...prev, current: page, pageSize }));
-  };
+  }, []);
 
-  const columns: ColumnsType<NotificationType> = [
+  const handleCreateSuccess = useCallback((created: NotificationResponse) => {
+    const mapped: NotificationType = {
+      key: String(created.notification_id),
+      id: String(created.notification_id),
+      title: created.title,
+      message: created.message,
+      scope: created.scope,
+      scope_id: created.scope_id,
+      createdAt: formatDate(created.created_at),
+    };
+
+    setAllNotifications((prev) => [mapped, ...prev]);
+    setIsCreateModalOpen(false);
+  }, [formatDate]);
+
+  const columns: ColumnsType<NotificationType> = useMemo(() => [
     {
       title: "STT",
       dataIndex: "id",
@@ -167,7 +192,8 @@ export default function SuperAdminNotifications() {
       render: (_: any, record: NotificationType) => {
         const handleEdit = (e: React.MouseEvent) => {
           e.stopPropagation();
-          message.warning("Tính năng sửa đang được phát triển");
+          setEditingNotification(record);
+          setIsEditModalOpen(true);
         };
 
         const handleDelete = (e: React.MouseEvent) => {
@@ -178,8 +204,18 @@ export default function SuperAdminNotifications() {
             okText: "Xóa",
             okType: "danger",
             cancelText: "Hủy",
-            onOk() {
-              message.warning("Tính năng xóa đang được phát triển");
+            async onOk() {
+              try {
+                await deleteNotification(record.id);
+                setAllNotifications((prev) => prev.filter((item) => item.id !== record.id));
+                setPagination((prev) => ({
+                  ...prev,
+                  total: Math.max(0, prev.total - 1),
+                }));
+                message.success("Đã xóa thông báo thành công");
+              } catch (error: any) {
+                message.error(error?.message || "Không thể xóa thông báo");
+              }
             },
           });
         };
@@ -219,7 +255,7 @@ export default function SuperAdminNotifications() {
         );
       },
     },
-  ];
+  ], [pagination.current, pagination.pageSize, message, modal]);
 
   return (
     <div className="space-y-5">
@@ -232,6 +268,10 @@ export default function SuperAdminNotifications() {
           allowClear
           className="flex-1 min-w-[200px]"
           size="middle"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
         />
         <Button
           type="default"
@@ -247,9 +287,35 @@ export default function SuperAdminNotifications() {
       <CreateNotificationModal
         open={isCreateModalOpen}
         onCancel={() => setIsCreateModalOpen(false)}
-        onSuccess={() => {
-          setIsCreateModalOpen(false);
-          fetchNotifications();
+        onSuccess={handleCreateSuccess}
+      />
+
+      <EditNotificationModal
+        open={isEditModalOpen}
+        notification={
+          editingNotification
+            ? {
+                id: editingNotification.id,
+                title: editingNotification.title,
+                message: editingNotification.message,
+              }
+            : null
+        }
+        onCancel={() => {
+          setIsEditModalOpen(false);
+          setEditingNotification(null);
+        }}
+        onSuccess={(updated) => {
+          setAllNotifications((prev) =>
+            prev.map((item) => (item.id === String(updated.notification_id) ? {
+              ...item,
+              title: updated.title,
+              message: updated.message,
+              createdAt: formatDate(updated.created_at),
+            } : item))
+          );
+          setIsEditModalOpen(false);
+          setEditingNotification(null);
         }}
       />
 
@@ -265,7 +331,7 @@ export default function SuperAdminNotifications() {
       <Spin spinning={loading}>
         <Table
           columns={columns}
-          dataSource={notifications}
+          dataSource={allNotifications}
           pagination={{
             current: pagination.current,
             pageSize: pagination.pageSize,

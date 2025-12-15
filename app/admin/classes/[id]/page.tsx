@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { App, Spin } from "antd";
 import StudentDetailModal from "@/app/components/students/StudentDetailModal";
@@ -18,8 +18,8 @@ import {
   updateClassStudentStatus,
   getClassStudentId,
   getBannedStudents,
+  getClassStudentsByClass,
   type ClassDetailResponse,
-  type ClassStudent,
   type ClassStudentRecord,
   type AddStudentToClassResponse,
 } from "@/lib/api/classes";
@@ -32,6 +32,15 @@ export default function ClassDetail() {
   const params = useParams();
   const { modal, message } = App.useApp();
   const classId = params?.id as string;
+
+  // Use ref to store stable values
+  const classIdRef = useRef(classId);
+  const classNameRef = useRef<string>("");
+
+  // Update refs when classId changes
+  useEffect(() => {
+    classIdRef.current = classId;
+  }, [classId]);
 
   const [classData, setClassData] = useState<{
     id: string;
@@ -51,31 +60,38 @@ export default function ClassDetail() {
   const [originalClassData, setOriginalClassData] = useState<ClassDetailResponse | null>(null);
   const [isBannedListModalOpen, setIsBannedListModalOpen] = useState(false);
 
-  // Map API student to StudentItem
-  const mapStudentToItem = useCallback((student: ClassStudent, className: string): StudentItem => {
-    const displayStatus = student.status === "banned" ? "Bị cấm" : "Đang học";
+  // Map ClassStudentRecord to StudentItem
+  const mapStudentRecordToItem = useCallback((record: ClassStudentRecord, className: string): StudentItem => {
+    if (!record.student) {
+      throw new Error("Student data is missing in record");
+    }
+
+    // Lấy userId từ student.user_id (vì API trả về user_id trong object student)
+    const userId = record.student.user_id || record.user_id;
+    
+    const displayStatus = record.status === "banned" ? "Bị cấm" : "Đang học";
 
     return {
-      key: String(student.user_id),
-      userId: student.user_id,
-      studentId: formatStudentId(student.user_id, student.username),
-      name: student.fullname,
-      email: student.email,
+      key: String(userId),
+      userId: userId,
+      studentId: formatStudentId(userId, record.student.username),
+      name: record.student.fullname,
+      email: record.student.email,
       phone: "",
       class: className,
       status: displayStatus,
-      apiStatus: student.status || "online",
-      classStudentId: student.id,
+      apiStatus: record.status || "online",
+      classStudentId: record.id,
     };
   }, []);
 
-  // Fetch class detail
-  const fetchClassDetail = useCallback(async () => {
-    if (!classId) return;
+  // Fetch class information (separate from students)
+  const fetchClassInfo = useCallback(async (): Promise<string> => {
+    const currentClassId = classIdRef.current;
+    if (!currentClassId) return "";
 
-    const startTime = Date.now();
     try {
-      const data = await getClassById(classId);
+      const data = await getClassById(currentClassId);
 
       // Map class data
       const mappedClassData = {
@@ -86,48 +102,97 @@ export default function ClassDetail() {
         status: (data.status === "active" ? CLASS_STATUS_MAP.active : CLASS_STATUS_MAP.inactive) as "Đang hoạt động" | "Tạm dừng",
       };
 
-      // Map students - chỉ lấy học sinh có status "online" (loại bỏ "banned")
-      const mappedStudents: StudentItem[] = (data.students || [])
-        .filter((student: ClassStudent) => student.status === "online")
-        .map((student: ClassStudent) => mapStudentToItem(student, data.name));
-
-      // Ensure minimum loading time
-      await ensureMinLoadingTime(startTime);
-
       setClassData(mappedClassData);
-      setStudents(mappedStudents);
       setOriginalClassData(data); // Lưu original data để dùng cho update
+      classNameRef.current = data.name; // Store className in ref
+      return data.name; // Return className for use in fetchClassStudents
     } catch (error: any) {
-      // Ensure minimum loading time even on error
-      await ensureMinLoadingTime(startTime);
       message.error(error?.message || "Không thể tải thông tin lớp học");
       setClassData(null);
+      throw error;
+    }
+  }, [message]);
+
+  // Fetch class students (separate from class info)
+  const fetchClassStudents = useCallback(
+    async (className?: string) => {
+      const currentClassId = classIdRef.current;
+      if (!currentClassId) return;
+
+      const startTime = Date.now();
+      try {
+        const records = await getClassStudentsByClass({
+          classId: currentClassId,
+          page: 1,
+          limit: 1000, // Lấy tất cả học sinh
+        });
+
+        // Use provided className or fallback to ref
+        const studentClassName = className || classNameRef.current || "";
+
+        // Map students - chỉ lấy học sinh có status "online" (loại bỏ "banned")
+        const mappedStudents: StudentItem[] = records
+          .filter((record: ClassStudentRecord) => record.status === "online")
+          .map((record: ClassStudentRecord) => mapStudentRecordToItem(record, studentClassName));
+
+        // Ensure minimum loading time
+        await ensureMinLoadingTime(startTime);
+
+        setStudents(mappedStudents);
+      } catch (error: any) {
+        // Ensure minimum loading time even on error
+        await ensureMinLoadingTime(startTime);
+        message.error(error?.message || "Không thể tải danh sách học sinh");
+        setStudents([]);
+      }
+    },
+    [message, mapStudentRecordToItem]
+  );
+
+  // Fetch both class info and students
+  const fetchClassDetail = useCallback(async () => {
+    const currentClassId = classIdRef.current;
+    if (!currentClassId) return;
+
+    setLoading(true);
+    try {
+      // Fetch class info first and get className
+      const className = await fetchClassInfo();
+      // Then fetch students with className
+      await fetchClassStudents(className);
+    } catch (error) {
+      // Error already handled in fetchClassInfo
     } finally {
       setLoading(false);
     }
-  }, [classId, message, mapStudentToItem]);
+  }, [fetchClassInfo, fetchClassStudents]);
 
+  // Only fetch when classId changes
   useEffect(() => {
-    fetchClassDetail();
-  }, [fetchClassDetail]);
+    if (classId) {
+      fetchClassDetail();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classId]);
 
   const handleEdit = useCallback(() => {
     setIsEditModalOpen(true);
   }, []);
 
   const handleDelete = useCallback(() => {
-    if (!classData) return;
-    
+    const currentClassId = classIdRef.current;
+    const currentClassName = classNameRef.current;
+
     modal.confirm({
       title: "Xác nhận xóa lớp học",
-      content: `Bạn có chắc chắn muốn xóa lớp học "${classData.name}"? Hành động này không thể hoàn tác.`,
+      content: `Bạn có chắc chắn muốn xóa lớp học "${currentClassName}"? Hành động này không thể hoàn tác.`,
       okText: "Xóa",
       okType: "danger",
       cancelText: "Hủy",
       onOk: async () => {
         try {
-          await deleteClass(classId);
-          message.success(`Đã xóa lớp học "${classData.name}" thành công`);
+          await deleteClass(currentClassId);
+          message.success(`Đã xóa lớp học "${currentClassName}" thành công`);
           // Redirect về trang danh sách lớp học
           router.push("/admin/classes");
         } catch (error: any) {
@@ -135,7 +200,7 @@ export default function ClassDetail() {
         }
       },
     });
-  }, [classData, classId, modal, message, router]);
+  }, [modal, message, router]);
 
   const handleViewStudent = useCallback((student: StudentItem) => {
     setSelectedStudent(student);
@@ -147,85 +212,95 @@ export default function ClassDetail() {
     setIsBannedModalOpen(true);
   }, []);
 
-  const handleBanStudent = useCallback((student: StudentItem) => {
-    modal.confirm({
-      title: "Xác nhận cấm học sinh",
-      content: `Bạn có chắc chắn muốn cấm học sinh "${student.name}"? Học sinh này sẽ không thể tham gia các hoạt động của lớp học.`,
-      okText: "Cấm",
-      okType: "danger",
-      cancelText: "Hủy",
-      onOk: async () => {
-        try {
-          // Lấy class-student id (id của bản ghi class-student) nếu chưa có
-          let classStudentId = student.classStudentId;
-          if (!classStudentId) {
-            // Gọi API để lấy id của bản ghi class-student từ userId
-            const id = await getClassStudentId(classId, student.userId);
-            if (!id) {
-              message.error("Không tìm thấy ID bản ghi học sinh trong lớp");
-              return;
+  const handleBanStudent = useCallback(
+    (student: StudentItem) => {
+      const currentClassId = classIdRef.current;
+
+      modal.confirm({
+        title: "Xác nhận cấm học sinh",
+        content: `Bạn có chắc chắn muốn cấm học sinh "${student.name}"? Học sinh này sẽ không thể tham gia các hoạt động của lớp học.`,
+        okText: "Cấm",
+        okType: "danger",
+        cancelText: "Hủy",
+        onOk: async () => {
+          try {
+            // Lấy class-student id (id của bản ghi class-student) nếu chưa có
+            let classStudentId = student.classStudentId;
+            if (!classStudentId) {
+              // Gọi API để lấy id của bản ghi class-student từ userId
+              const id = await getClassStudentId(currentClassId, student.userId);
+              if (!id) {
+                message.error("Không tìm thấy ID bản ghi học sinh trong lớp");
+                return;
+              }
+              classStudentId = id;
             }
-            classStudentId = id;
+
+            await updateClassStudentStatus({
+              id: classStudentId, // id của bản ghi class-student, không phải userId
+              status: "banned",
+            });
+
+            // Xóa học sinh khỏi danh sách chính (chỉ hiển thị online)
+            setStudents((prev) => prev.filter((s) => s.key !== student.key));
+
+            // Cập nhật số lượng học sinh
+            setClassData((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                students: prev.students - 1,
+              };
+            });
+
+            message.success(`Đã cấm học sinh "${student.name}"`);
+          } catch (error: any) {
+            message.error(error?.message || "Không thể cấm học sinh");
           }
+        },
+      });
+    },
+    [modal, message]
+  );
 
-          await updateClassStudentStatus({
-            id: classStudentId, // id của bản ghi class-student, không phải userId
-            status: "banned",
-          });
+  const handleRemoveStudent = useCallback(
+    (student: StudentItem) => {
+      const currentClassId = classIdRef.current;
+      const currentClassName = classNameRef.current;
 
-          // Xóa học sinh khỏi danh sách chính (chỉ hiển thị online)
-          setStudents((prev) => prev.filter((s) => s.key !== student.key));
-          
-          // Cập nhật số lượng học sinh
-          setClassData((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              students: prev.students - 1,
-            };
-          });
+      modal.confirm({
+        title: "Xác nhận xóa học sinh",
+        content: `Bạn có chắc chắn muốn xóa học sinh "${student.name}" ra khỏi lớp "${currentClassName}"?`,
+        okText: "Xóa",
+        okType: "danger",
+        cancelText: "Hủy",
+        onOk: async () => {
+          try {
+            console.log(student);
+            await removeStudentFromClass({
+              classId: currentClassId,
+              userId: student.userId,
+            });
 
-          message.success(`Đã cấm học sinh "${student.name}"`);
-        } catch (error: any) {
-          message.error(error?.message || "Không thể cấm học sinh");
-        }
-      },
-    });
-  }, [classId, modal, message]);
+            // Cập nhật state trực tiếp
+            setStudents((prev) => prev.filter((s) => s.key !== student.key));
+            setClassData((prev) => {
+              if (!prev) return prev;
+              return {
+                ...prev,
+                students: prev.students - 1,
+              };
+            });
 
-  const handleRemoveStudent = useCallback((student: StudentItem) => {
-    if (!classData) return;
-    
-    modal.confirm({
-      title: "Xác nhận xóa học sinh",
-      content: `Bạn có chắc chắn muốn xóa học sinh "${student.name}" ra khỏi lớp "${classData.name}"?`,
-      okText: "Xóa",
-      okType: "danger",
-      cancelText: "Hủy",
-      onOk: async () => {
-        try {
-          await removeStudentFromClass({
-            classId: classId,
-            userId: student.userId,
-          });
-
-          // Cập nhật state trực tiếp
-          setStudents((prev) => prev.filter((s) => s.key !== student.key));
-          setClassData((prev) => {
-            if (!prev) return prev;
-            return {
-              ...prev,
-              students: prev.students - 1,
-            };
-          });
-
-          message.success(`Đã xóa học sinh "${student.name}" ra khỏi lớp`);
-        } catch (error: any) {
-          message.error(error?.message || "Không thể xóa học sinh khỏi lớp");
-        }
-      },
-    });
-  }, [classData, classId, modal, message]);
+            message.success(`Đã xóa học sinh "${student.name}" ra khỏi lớp`);
+          } catch (error: any) {
+            message.error(error?.message || "Không thể xóa học sinh khỏi lớp");
+          }
+        },
+      });
+    },
+    [modal, message]
+  );
 
   const handleAddSingle = useCallback(() => {
     setIsAddSingleModalOpen(true);
@@ -239,36 +314,114 @@ export default function ClassDetail() {
     setIsBannedListModalOpen(true);
   }, []);
 
-  const handleAddStudentSuccess = useCallback((student: StudentResponse, classStudentResponse: AddStudentToClassResponse) => {
-    // Map API student to StudentItem format
-    const newStudent: StudentItem = {
-      key: String(student.user_id),
-      userId: student.user_id,
-      studentId: formatStudentId(student.user_id, student.username),
-      name: student.fullname,
-      email: student.email,
-      phone: student.phone || "",
-      class: classData?.name || "",
-      status: "Đang học" as const,
-      apiStatus: "online",
-      classStudentId: classStudentResponse.id,
-    };
+  const handleAddStudentSuccess = useCallback(
+    (student: StudentResponse, classStudentResponse: AddStudentToClassResponse) => {
+      const currentClassName = classNameRef.current;
 
-    // Cập nhật state trực tiếp
-    setStudents((prev) => [...prev, newStudent]);
+      // Map API student to StudentItem format
+      const newStudent: StudentItem = {
+        key: String(student.user_id),
+        userId: student.user_id,
+        studentId: formatStudentId(student.user_id, student.username),
+        name: student.fullname,
+        email: student.email,
+        phone: student.phone || "",
+        class: currentClassName,
+        status: "Đang học" as const,
+        apiStatus: "online",
+        classStudentId: classStudentResponse.id,
+      };
+
+      // Cập nhật state trực tiếp
+      setStudents((prev) => [...prev, newStudent]);
+      setClassData((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          students: prev.students + 1,
+        };
+      });
+
+      message.success(`Đã thêm học sinh "${student.fullname}" vào lớp`);
+    },
+    [message]
+  );
+
+  // Get existing student IDs for filtering (memoized)
+  const existingStudentIds = useMemo(() => students.map((s) => s.key), [students]);
+
+  // Memoize classInfo object to prevent unnecessary rerenders
+  const classInfo = useMemo(() => {
+    if (!classData) return null;
+    return {
+      name: classData.name,
+      code: classData.code,
+      students: classData.students,
+      status: classData.status,
+    };
+  }, [classData]);
+
+  // Memoize modal classInfo
+  const modalClassInfo = useMemo(() => {
+    if (!classData) return { name: "", code: "" };
+    return {
+      name: classData.name,
+      code: classData.code,
+    };
+  }, [classData]);
+
+  // Memoize callbacks for modals
+  const handleCloseViewModal = useCallback(() => {
+    setIsViewModalOpen(false);
+    setSelectedStudent(null);
+  }, []);
+
+  const handleCloseBannedModal = useCallback(() => {
+    setIsBannedModalOpen(false);
+    setSelectedStudent(null);
+  }, []);
+
+  const handleCloseAddSingleModal = useCallback(() => {
+    setIsAddSingleModalOpen(false);
+  }, []);
+
+  const handleCloseEditModal = useCallback(() => {
+    setIsEditModalOpen(false);
+  }, []);
+
+  const handleCloseBannedListModal = useCallback(() => {
+    setIsBannedListModalOpen(false);
+  }, []);
+
+  const handleUpdateClassSuccess = useCallback((updatedName: string) => {
+    setIsEditModalOpen(false);
+    // Cập nhật state trực tiếp thay vì gọi lại API
     setClassData((prev) => {
       if (!prev) return prev;
       return {
         ...prev,
-        students: prev.students + 1,
+        name: updatedName,
       };
     });
+    // Cập nhật originalClassData để đồng bộ
+    setOriginalClassData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        name: updatedName,
+      };
+    });
+    classNameRef.current = updatedName; // Update ref
+  }, []);
 
-    message.success(`Đã thêm học sinh "${student.fullname}" vào lớp`);
-  }, [classData?.name, message]);
-
-  // Get existing student IDs for filtering (memoized)
-  const existingStudentIds = useMemo(() => students.map((s) => s.key), [students]);
+  const handleUnbanSuccess = useCallback(() => {
+    // Refresh students list và class info để cập nhật số lượng học sinh
+    const currentClassName = classNameRef.current;
+    if (currentClassName) {
+      fetchClassStudents(currentClassName);
+      fetchClassInfo(); // Refresh để cập nhật student_count
+    }
+  }, [fetchClassStudents, fetchClassInfo]);
 
   // Early returns after all hooks
   if (loading) {
@@ -304,14 +457,7 @@ export default function ClassDetail() {
       <ClassHeader className={classData.name} onEdit={handleEdit} onDelete={handleDelete} />
 
       {/* Thông tin lớp học */}
-      <ClassInfoCard
-        classInfo={{
-          name: classData.name,
-          code: classData.code,
-          students: classData.students,
-          status: classData.status,
-        }}
-      />
+      {classInfo && <ClassInfoCard classInfo={classInfo} />}
 
       {/* Danh sách học sinh */}
       <ClassStudentsTable
@@ -326,7 +472,7 @@ export default function ClassDetail() {
       />
 
       {/* Modal chỉnh sửa lớp học */}
-      {originalClassData && (
+      {originalClassData && classData && (
         <UpdateClassModal
           open={isEditModalOpen}
           classId={classId}
@@ -334,79 +480,36 @@ export default function ClassDetail() {
           currentCode={classData.code}
           currentStudentCount={classData.students}
           currentStatus={originalClassData.status}
-          onCancel={() => setIsEditModalOpen(false)}
-          onSuccess={(updatedName) => {
-            setIsEditModalOpen(false);
-            // Cập nhật state trực tiếp thay vì gọi lại API
-            setClassData((prev) => {
-              if (!prev) return prev;
-              return {
-                ...prev,
-                name: updatedName,
-              };
-            });
-            // Cập nhật originalClassData để đồng bộ
-            setOriginalClassData((prev) => {
-              if (!prev) return prev;
-              return {
-                ...prev,
-                name: updatedName,
-              };
-            });
-          }}
+          onCancel={handleCloseEditModal}
+          onSuccess={handleUpdateClassSuccess}
         />
       )}
 
       {/* Modal thêm học sinh single */}
-      {classData && (
-        <AddSingleStudentModal
-          open={isAddSingleModalOpen}
-          classId={classId}
-          existingStudentIds={existingStudentIds}
-          onCancel={() => setIsAddSingleModalOpen(false)}
-          onSuccess={handleAddStudentSuccess}
-        />
-      )}
+      <AddSingleStudentModal
+        open={isAddSingleModalOpen}
+        classId={classId}
+        existingStudentIds={existingStudentIds}
+        onCancel={handleCloseAddSingleModal}
+        onSuccess={handleAddStudentSuccess}
+      />
 
       {/* Modal xem chi tiết học sinh */}
-      <StudentDetailModal
-        open={isViewModalOpen}
-        onCancel={() => {
-          setIsViewModalOpen(false);
-          setSelectedStudent(null);
-        }}
-        student={selectedStudent}
-        classInfo={{
-          name: classData.name,
-          code: classData.code,
-        }}
-      />
+      <StudentDetailModal open={isViewModalOpen} onCancel={handleCloseViewModal} student={selectedStudent} classInfo={modalClassInfo} />
 
       {/* Modal học sinh bị cấm */}
-      <BannedStudentModal
-        open={isBannedModalOpen}
-        onCancel={() => {
-          setIsBannedModalOpen(false);
-          setSelectedStudent(null);
-        }}
-        student={selectedStudent}
-        classInfo={{
-          name: classData.name,
-          code: classData.code,
-        }}
-      />
+      <BannedStudentModal open={isBannedModalOpen} onCancel={handleCloseBannedModal} student={selectedStudent} classInfo={modalClassInfo} />
 
       {/* Modal danh sách học sinh bị cấm */}
-      <BannedListModal
-        open={isBannedListModalOpen}
-        onCancel={() => setIsBannedListModalOpen(false)}
-        classId={classId}
-        className={classData.name}
-        onUnbanSuccess={() => {
-          // Refresh class detail để cập nhật số lượng học sinh
-          fetchClassDetail();
-        }}
-      />
+      {classData && (
+        <BannedListModal
+          open={isBannedListModalOpen}
+          onCancel={handleCloseBannedListModal}
+          classId={classId}
+          className={classData.name}
+          onUnbanSuccess={handleUnbanSuccess}
+        />
+      )}
     </div>
   );
 }

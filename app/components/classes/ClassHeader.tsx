@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Button, Space } from "antd";
 import { ArrowLeftOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
@@ -10,7 +11,7 @@ interface ClassHeaderProps {
   onDelete: () => void;
 }
 
-export default function ClassHeader({ className, onEdit, onDelete }: ClassHeaderProps) {
+function ClassHeader({ className, onEdit, onDelete }: ClassHeaderProps) {
   const router = useRouter();
 
   return (
@@ -31,3 +32,5 @@ export default function ClassHeader({ className, onEdit, onDelete }: ClassHeader
     </div>
   );
 }
+
+export default memo(ClassHeader);

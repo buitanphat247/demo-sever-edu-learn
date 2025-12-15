@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { Descriptions, Tag } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import CustomCard from "@/app/components/common/CustomCard";
@@ -15,7 +16,7 @@ interface ClassInfoCardProps {
   classInfo: ClassInfo;
 }
 
-export default function ClassInfoCard({ classInfo }: ClassInfoCardProps) {
+function ClassInfoCard({ classInfo }: ClassInfoCardProps) {
   return (
     <CustomCard title="Thông tin lớp học" bodyClassName="py-6">
       <Descriptions column={2} bordered>
@@ -40,3 +41,5 @@ export default function ClassInfoCard({ classInfo }: ClassInfoCardProps) {
     </CustomCard>
   );
 }
+
+export default memo(ClassInfoCard);

@@ -27,9 +27,8 @@ export interface ClassStudent {
   status?: string; // Status từ class-students API: "online" | "banned"
 }
 
-export interface ClassDetailResponse extends ClassResponse {
-  students: ClassStudent[];
-}
+// ClassDetailResponse giờ chỉ là ClassResponse vì students được lấy riêng
+export type ClassDetailResponse = ClassResponse;
 
 export interface GetClassesParams {
   page?: number;
@@ -525,6 +524,55 @@ export interface GetBannedStudentsApiResponse {
   statusCode: number;
   timestamp: string;
 }
+
+// Get class students by class ID
+export interface GetClassStudentsByClassParams {
+  classId: number | string;
+  page?: number;
+  limit?: number;
+}
+
+export interface GetClassStudentsByClassApiResponse {
+  status: boolean;
+  message: string;
+  data: ClassStudentRecord[];
+  statusCode: number;
+  timestamp: string;
+}
+
+export const getClassStudentsByClass = async (params: GetClassStudentsByClassParams): Promise<ClassStudentRecord[]> => {
+  try {
+    const classId = typeof params.classId === "string" ? Number(params.classId) : params.classId;
+
+    const response = await apiClient.get<GetClassStudentsByClassApiResponse | ClassStudentRecord[]>(
+      `/class-students/by-class/${classId}`,
+      {
+        params: {
+          page: params.page || 1,
+          limit: params.limit || 10,
+        },
+      }
+    );
+
+    const data = response.data;
+
+    // Handle direct array response
+    if (Array.isArray(data)) {
+      return data;
+    }
+
+    // Handle API response with status wrapper
+    const apiResponse = data as GetClassStudentsByClassApiResponse;
+    if (apiResponse.status && apiResponse.data) {
+      return apiResponse.data;
+    }
+
+    return [];
+  } catch (error: any) {
+    const errorMessage = error?.response?.data?.message || error?.message || "Không thể lấy danh sách học sinh trong lớp";
+    throw new Error(errorMessage);
+  }
+};
 
 export const getBannedStudents = async (params: GetBannedStudentsParams): Promise<ClassStudentRecord[]> => {
   try {

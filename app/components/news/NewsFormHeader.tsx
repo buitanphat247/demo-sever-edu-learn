@@ -15,7 +15,7 @@ export default function NewsFormHeader({ isEditMode, onBack, title }: NewsFormHe
     if (onBack) {
       onBack();
     } else {
-      router.push("/admin/news");
+      router.push("/admin");
     }
   };
 
@@ -26,7 +26,7 @@ export default function NewsFormHeader({ isEditMode, onBack, title }: NewsFormHe
           Quay lại
         </Button>
         <h1 className="text-2xl font-bold text-gray-800">
-          {title || (isEditMode ? "Chỉnh sửa Tin tức" : "Thêm Tin tức mới")}
+          {title || (isEditMode ? "Chỉnh sửa Thông báo" : "Thêm Thông báo mới")}
         </h1>
       </div>
     </div>

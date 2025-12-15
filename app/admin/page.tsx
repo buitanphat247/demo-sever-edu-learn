@@ -24,12 +24,12 @@ const dashboardItems = [
   },
   {
     icon: BellOutlined,
-    title: "Quản lý tin tức",
-    description: "Đăng và chỉnh sửa tin tức",
+    title: "Quản lý thông báo",
+    description: "Gửi thông báo cho lớp học hoặc học sinh",
     gradient: "from-purple-500 to-purple-600",
     iconBg: "bg-purple-100",
     iconColor: "text-purple-600",
-    path: "/admin/news",
+    path: "/admin/notification",
   },
   {
     icon: AppstoreOutlined,

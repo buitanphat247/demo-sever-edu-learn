@@ -37,11 +37,14 @@ export default function BannedListModal({ open, onCancel, classId, className, on
 
   // Map API data to table format
   const mapBannedStudentToItem = useCallback((record: ClassStudentRecord): BannedStudentItem => {
+    // Lấy userId từ student.user_id (vì API trả về user_id trong object student)
+    const userId = record.student?.user_id || record.user_id;
+    
     return {
       key: String(record.id),
       id: record.id,
-      userId: record.user_id,
-      studentId: formatStudentId(record.user_id, record.student?.username),
+      userId: userId,
+      studentId: formatStudentId(userId, record.student?.username),
       name: record.student?.fullname || "",
       email: record.student?.email || "",
       addedAt: record.added_at,

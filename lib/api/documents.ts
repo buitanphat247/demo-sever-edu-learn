@@ -155,6 +155,8 @@ export interface DocumentAttachmentCrawl {
 export interface GetDocumentAttachmentsCrawlParams {
   page?: number;
   limit?: number;
+  fileName?: string;
+  fileType?: string;
 }
 
 export interface GetDocumentAttachmentsCrawlResult {
@@ -225,6 +227,14 @@ export const getDocumentAttachmentsCrawl = async (
       page: params?.page || 1,
       limit: params?.limit || 10,
     };
+
+    if (params?.fileName && params.fileName.trim()) {
+      requestParams.fileName = params.fileName.trim();
+    }
+
+    if (params?.fileType && params.fileType.trim()) {
+      requestParams.fileType = params.fileType.trim();
+    }
 
     const response = await apiClient.get("/document-attachments-crawl", {
       params: requestParams,

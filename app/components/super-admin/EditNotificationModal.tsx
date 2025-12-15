@@ -2,29 +2,46 @@
 
 import { Modal, Form, Input, Button, App } from "antd";
 import { useState, useEffect } from "react";
-import { createNotification, type CreateNotificationParams, type NotificationResponse } from "@/lib/api/notifications";
+import { updateNotification, type UpdateNotificationParams, type NotificationResponse } from "@/lib/api/notifications";
 import { getUserIdFromCookie } from "@/lib/utils/cookies";
 
 const { TextArea } = Input;
 
-interface CreateNotificationModalProps {
+interface EditNotificationModalProps {
   open: boolean;
+  notification: {
+    id: string;
+    title: string;
+    message: string;
+  } | null;
   onCancel: () => void;
-  onSuccess: (created: NotificationResponse) => void;
+  onSuccess: (updated: NotificationResponse) => void;
 }
 
-export default function CreateNotificationModal({ open, onCancel, onSuccess }: CreateNotificationModalProps) {
+export default function EditNotificationModal({
+  open,
+  notification,
+  onCancel,
+  onSuccess,
+}: EditNotificationModalProps) {
   const [form] = Form.useForm();
   const { message } = App.useApp();
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (open) {
+    if (open && notification) {
+      form.setFieldsValue({
+        title: notification.title,
+        message: notification.message,
+      });
+    } else {
       form.resetFields();
     }
-  }, [open, form]);
+  }, [open, notification, form]);
 
   const handleSubmit = async (values: any) => {
+    if (!notification) return;
+
     setSubmitting(true);
     try {
       const userId = getUserIdFromCookie();
@@ -35,19 +52,19 @@ export default function CreateNotificationModal({ open, onCancel, onSuccess }: C
       }
 
       const numericUserId = typeof userId === "string" ? Number(userId) : userId;
-      const params: CreateNotificationParams = {
+      const params: UpdateNotificationParams = {
         title: values.title,
         message: values.message,
-        scope: "all", // Luôn gửi "all" (Tất cả)
+        scope: "all", // Super admin luôn giữ scope = all
         created_by: numericUserId,
       };
 
-      const created = await createNotification(params);
-      message.success("Tạo thông báo thành công!");
+      const updated = await updateNotification(notification.id, params);
+      message.success("Cập nhật thông báo thành công!");
+      onSuccess(updated);
       form.resetFields();
-      onSuccess(created);
     } catch (error: any) {
-      message.error(error?.message || "Không thể tạo thông báo");
+      message.error(error?.message || "Không thể cập nhật thông báo");
     } finally {
       setSubmitting(false);
     }
@@ -55,7 +72,7 @@ export default function CreateNotificationModal({ open, onCancel, onSuccess }: C
 
   const handleCancel = () => {
     if (submitting) {
-      message.warning("Đang tạo thông báo, vui lòng đợi...");
+      message.warning("Đang cập nhật thông báo, vui lòng đợi...");
       return;
     }
     form.resetFields();
@@ -64,7 +81,7 @@ export default function CreateNotificationModal({ open, onCancel, onSuccess }: C
 
   return (
     <Modal
-      title="Tạo thông báo mới"
+      title="Chỉnh sửa thông báo"
       open={open}
       onCancel={handleCancel}
       footer={null}
@@ -108,8 +125,15 @@ export default function CreateNotificationModal({ open, onCancel, onSuccess }: C
             <Button onClick={handleCancel} disabled={submitting} size="middle">
               Hủy
             </Button>
-            <Button type="primary" htmlType="submit" loading={submitting} disabled={submitting} size="middle" className="bg-blue-500 hover:bg-blue-600">
-              {submitting ? "Đang tạo..." : "Tạo thông báo"}
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={submitting}
+              disabled={submitting}
+              size="middle"
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              {submitting ? "Đang cập nhật..." : "Lưu thay đổi"}
             </Button>
           </div>
         </Form.Item>
@@ -117,4 +141,5 @@ export default function CreateNotificationModal({ open, onCancel, onSuccess }: C
     </Modal>
   );
 }
+
 
