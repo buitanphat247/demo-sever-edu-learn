@@ -8,6 +8,95 @@ import { SoundOutlined, FileTextOutlined, CheckCircleOutlined, EditOutlined, Boo
 import { getVocabulariesByFolder, type VocabularyResponse } from "@/lib/api/vocabulary";
 import Image from "next/image";
 
+const HeaderSkeleton = () => (
+  <div className="mb-12 animate-pulse">
+    {/* Breadcrumb Skeleton */}
+    <div className="mb-8 bg-[#1e293b] border border-slate-700/50 rounded-xl px-6 py-4 w-full flex items-center gap-3">
+      <div className="h-4 w-20 bg-slate-700/50 rounded-md" />
+      <div className="h-3 w-3 bg-slate-700/50 rounded-full" />
+      <div className="h-4 w-24 bg-slate-700/50 rounded-md" />
+      <div className="h-3 w-3 bg-slate-700/50 rounded-full" />
+      <div className="h-4 w-32 bg-slate-700/50 rounded-md" />
+    </div>
+
+    {/* Title Section Skeleton */}
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex-1">
+        <div className="h-10 md:h-12 w-3/4 md:w-96 bg-slate-700/50 rounded-lg mb-4" />
+        <div className="flex items-center gap-3">
+          <div className="h-1.5 w-16 bg-slate-700/50 rounded-full" />
+          <div className="h-5 w-32 bg-slate-700/50 rounded-md" />
+        </div>
+      </div>
+      <div className="h-11 w-36 bg-slate-700/50 rounded-full shadow-lg" />
+    </div>
+  </div>
+);
+
+const PracticeModesSkeleton = () => (
+  <div className="mb-16">
+    <div className="flex items-center gap-2 mb-6 animate-pulse">
+      <div className="w-6 h-6 rounded-full bg-slate-700/50" />
+      <div className="h-6 w-48 bg-slate-700/50 rounded-md" />
+    </div>
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="bg-[#1e293b] rounded-2xl p-5 border border-slate-700/50 shadow-sm animate-pulse">
+          <div className="w-12 h-12 rounded-xl bg-slate-700/50 mb-4" />
+          <div className="h-5 w-24 bg-slate-700/50 rounded-md mb-2" />
+          <div className="h-3 w-full bg-slate-700/50 rounded-md" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+const VocabularyListSkeleton = () => (
+  <div>
+    <div className="flex items-center gap-2 mb-6 animate-pulse">
+      <div className="w-6 h-6 rounded-full bg-slate-700/50" />
+      <div className="h-6 w-48 bg-slate-700/50 rounded-md" />
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="bg-[#1e293b] rounded-2xl p-6 border border-slate-700/50 shadow-sm animate-pulse">
+          {/* Top Section */}
+          <div className="flex items-start gap-4 mb-5">
+            <div className="w-16 h-16 rounded-xl bg-slate-700/50 shrink-0" />
+            <div className="flex-1 min-w-0 pt-1">
+              <div className="flex items-center justify-between mb-2">
+                <div className="h-6 w-3/4 bg-slate-700/50 rounded-md" />
+                <div className="h-8 w-8 rounded-full bg-slate-700/50" />
+              </div>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="h-4 w-12 rounded bg-slate-700/50" />
+                <div className="h-4 w-24 rounded bg-slate-700/50" />
+              </div>
+              <div className="h-5 w-1/2 bg-slate-700/50 rounded-md" />
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="h-px bg-slate-700/50 mb-4" />
+
+          {/* Example Section */}
+          <div className="mb-4 bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
+            <div className="h-4 w-full bg-slate-700/50 rounded mb-2" />
+            <div className="h-3 w-3/4 bg-slate-700/50 rounded" />
+          </div>
+
+          {/* Details */}
+          <div className="flex flex-wrap gap-2">
+            {[1, 2, 3].map((j) => (
+              <div key={j} className="h-5 w-16 bg-slate-700/50 rounded-md" />
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 export default function VocabularyDetail() {
   const { message } = App.useApp();
   const router = useRouter();
@@ -136,53 +225,61 @@ export default function VocabularyDetail() {
       }}
     >
       <main className="min-h-screen bg-[#0f172a] py-8 md:py-12 font-sans text-slate-200">
-        <div className="container mx-auto px-4 max-w-6xl">
+        <div className="container mx-auto px-4">
           
           {/* Header */}
           <div className="mb-12">
-            <nav className="mb-8 bg-[#1e293b] border border-slate-700/50 rounded-xl px-6 py-4 shadow-sm text-sm font-medium flex items-center flex-wrap gap-2">
-              <Link href="/" className="text-blue-400 hover:text-blue-300 transition-colors">Trang chủ</Link>
-              <span className="text-slate-600">/</span>
-              <Link href="/features/vocabulary" className="text-blue-400 hover:text-blue-300 transition-colors">Học từ vựng</Link>
-              {folderName && (
-                <>
+            {loading ? (
+              <HeaderSkeleton />
+            ) : (
+              <>
+                <nav className="mb-8 bg-[#1e293b] border border-slate-700/50 rounded-xl px-6 py-4 shadow-sm text-sm font-medium flex items-center flex-wrap gap-2">
+                  <Link href="/" className="text-blue-400 hover:text-blue-300 transition-colors">Trang chủ</Link>
                   <span className="text-slate-600">/</span>
-                  <span className="text-slate-300 font-medium">{folderName}</span>
-                </>
-              )}
-            </nav>
+                  <Link href="/features/vocabulary" className="text-blue-400 hover:text-blue-300 transition-colors">Học từ vựng</Link>
+                  {folderName && (
+                    <>
+                      <span className="text-slate-600">/</span>
+                      <span className="text-slate-300 font-medium">{folderName}</span>
+                    </>
+                  )}
+                </nav>
 
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div>
-                <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
-                  {folderName || "Từ vựng"}
-                </h1>
-                <div className="flex items-center gap-3">
-                  <div className="h-1.5 w-16 bg-blue-600 rounded-full"></div>
-                  <p className="text-slate-400 font-medium">
-                    {vocabularies.length > 0 ? `${vocabularies.length} từ vựng` : "Đang tải..."}
-                  </p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div>
+                    <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
+                      {folderName || "Từ vựng"}
+                    </h1>
+                    <div className="flex items-center gap-3">
+                      <div className="h-1.5 w-16 bg-blue-600 rounded-full"></div>
+                      <p className="text-slate-400 font-medium">
+                        {vocabularies?.length > 0 ? `${vocabularies.length} từ vựng` : "Đang tải..."}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {vocabularies.length > 0 && (
+                    <div className="flex gap-3">
+                       <Button 
+                        type="primary" 
+                        size="large"
+                        shape="round"
+                        className="bg-blue-600 hover:bg-blue-500 h-11 px-8 shadow-lg shadow-blue-900/40 font-semibold border-none"
+                        onClick={() => router.push(`/features/vocabulary/flashcard/${folderId}`)}
+                       >
+                         Học ngay
+                       </Button>
+                    </div>
+                  )}
                 </div>
-              </div>
-              
-              {!loading && vocabularies.length > 0 && (
-                <div className="flex gap-3">
-                   <Button 
-                    type="primary" 
-                    size="large"
-                    shape="round"
-                    className="bg-blue-600 hover:bg-blue-500 h-11 px-8 shadow-lg shadow-blue-900/40 font-semibold border-none"
-                    onClick={() => router.push(`/features/vocabulary/flashcard/${folderId}`)}
-                   >
-                     Học ngay
-                   </Button>
-                </div>
-              )}
-            </div>
+              </>
+            )}
           </div>
 
           {/* Practice Modes */}
-          {!loading && vocabularies.length > 0 && (
+          {loading ? (
+            <PracticeModesSkeleton />
+          ) : vocabularies.length > 0 && (
             <div className="mb-16">
               <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
                 <CheckCircleOutlined className="text-blue-500" />
@@ -226,10 +323,7 @@ export default function VocabularyDetail() {
 
           {/* Vocabulary List */}
           {loading ? (
-             <div className="flex flex-col items-center justify-center py-24">
-               <Spin size="large" />
-               <p className="mt-4 text-slate-400">Đang tải dữ liệu...</p>
-             </div>
+            <VocabularyListSkeleton />
           ) : vocabularies.length > 0 ? (
             <div>
               <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">

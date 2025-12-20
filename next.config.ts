@@ -19,6 +19,26 @@ const nextConfig: NextConfig = {
         hostname: "autobot-161.s3.amazonaws.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "elements-resized.envatousercontent.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.dribbble.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "file.hstatic.net",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
+      },
     ],
   },
   

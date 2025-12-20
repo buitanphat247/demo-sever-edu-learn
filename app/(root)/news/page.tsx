@@ -1,68 +1,19 @@
 "use client";
 
-import { Pagination, Input, Select, ConfigProvider, theme } from "antd";
+import { Input, Select } from "antd";
 import { useState, useMemo } from "react";
 import NewsCard from "@/app/components/news/NewsCard";
 import { SearchOutlined } from "@ant-design/icons";
-
-const { Search } = Input;
-
-const news = [
-  {
-    id: 1,
-    title: "Khai giảng khóa học mới - Nâng cao kỹ năng lập trình",
-    excerpt: "Tham gia khóa học lập trình chuyên sâu với các công nghệ mới nhất...",
-    image: "/images/banner/1.webp",
-    date: "15/01/2024",
-    category: "Tin tức",
-  },
-  {
-    id: 2,
-    title: "Hội thảo trực tuyến: Xu hướng giáo dục số 2024",
-    excerpt: "Cùng các chuyên gia hàng đầu thảo luận về tương lai của giáo dục...",
-    image: "/images/banner/2.webp",
-    date: "12/01/2024",
-    category: "Sự kiện",
-  },
-  {
-    id: 3,
-    title: "Ra mắt tính năng học tập AI mới",
-    excerpt: "Trải nghiệm học tập cá nhân hóa với công nghệ trí tuệ nhân tạo...",
-    image: "/images/banner/3.webp",
-    date: "10/01/2024",
-    category: "Tin tức",
-  },
-  {
-    id: 4,
-    title: "Chương trình khuyến mãi đặc biệt tháng 1",
-    excerpt: "Giảm giá 50% cho tất cả khóa học trong tháng này...",
-    image: "/images/banner/1.webp",
-    date: "08/01/2024",
-    category: "Tin tức",
-  },
-  {
-    id: 5,
-    title: "Workshop: Kỹ năng thuyết trình hiệu quả",
-    excerpt: "Học cách thuyết trình tự tin và thu hút khán giả...",
-    image: "/images/banner/2.webp",
-    date: "05/01/2024",
-    category: "Sự kiện",
-  },
-  {
-    id: 6,
-    title: "Cập nhật hệ thống học tập mới",
-    excerpt: "Nâng cấp giao diện và tính năng để trải nghiệm tốt hơn...",
-    image: "/images/banner/3.webp",
-    date: "03/01/2024",
-    category: "Tin tức",
-  },
-];
+import DarkPagination from "@/app/components/common/DarkPagination";
+import ScrollAnimation from "@/app/components/common/ScrollAnimation";
+import { news } from "./mock_data";
 
 export default function News() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchText, setSearchText] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const pageSize = 6;
+  const [isScrolling, setIsScrolling] = useState(false);
+  const pageSize = 20;
 
   const filteredNews = useMemo(() => {
     return news.filter((item) => {
@@ -91,7 +42,7 @@ export default function News() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0f172a] pb-20">
+    <main className="min-h-screen bg-[#0f172a]">
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold text-white mb-4">Tin tức & Sự kiện</h1>
@@ -103,82 +54,70 @@ export default function News() {
 
         {/* Search & Filter Section */}
         <div className="mb-12 max-w-4xl mx-auto">
-          <ConfigProvider
-            theme={{
-              algorithm: theme.darkAlgorithm,
-              token: {
-                colorBgContainer: '#1e293b',
-                colorBorder: '#334155',
-                colorPrimary: '#3b82f6',
-                borderRadius: 12,
-                controlHeight: 50,
-                fontSize: 16,
-              },
-              components: {
-                Input: {
-                  activeBorderColor: '#60a5fa',
-                  hoverBorderColor: '#60a5fa',
-                  paddingInline: 20,
-                },
-                Select: {
-                  optionSelectedBg: '#334155',
-                }
-              }
-            }}
-          >
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div className="flex-1 w-full">
-                <Input
-                  prefix={<SearchOutlined className="text-slate-400 text-xl mr-2" />}
-                  placeholder="Tìm kiếm tin tức..."
-                  allowClear
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full shadow-lg shadow-black/20"
-                />
-              </div>
-              <div className="w-full md:w-64">
-                <Select
-                  placeholder="Chọn danh mục"
-                  allowClear
-                  className="w-full shadow-lg shadow-black/20"
-                  onChange={handleCategoryChange}
-                  options={categories.map((cat) => ({ label: cat, value: cat }))}
-                />
-              </div>
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex-1 w-full">
+              <Input
+                prefix={<SearchOutlined className="text-slate-400 text-xl mr-2" />}
+                placeholder="Tìm kiếm tin tức..."
+                allowClear
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full shadow-lg shadow-black/20"
+              />
             </div>
-          </ConfigProvider>
+            <div className="w-full md:w-64">
+              <Select
+                placeholder="Chọn danh mục"
+                allowClear
+                className="w-full shadow-lg shadow-black/20"
+                onChange={handleCategoryChange}
+                options={categories.map((cat) => ({ label: cat, value: cat }))}
+              />
+            </div>
+          </div>
         </div>
 
         {currentNews.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentNews.map((item) => (
-                <NewsCard
-                  key={item.id}
-                  id={item.id}
-                  title={item.title}
-                  excerpt={item.excerpt}
-                  image={item.image}
-                  date={item.date}
-                  category={item.category}
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4  gap-6">
+              {currentNews.map((item, index) => (
+                <ScrollAnimation
+                  key={`${item.id}-${currentPage}`}
+                  direction="up"
+                  delay={isScrolling ? 500 + (index * 50) : index * 50}
+                >
+                  <NewsCard
+                    id={item.id}
+                    title={item.title}
+                    excerpt={item.excerpt}
+                    image={item.image}
+                    date={item.date}
+                    category={item.category}
+                  />
+                </ScrollAnimation>
               ))}
             </div>
 
             {total > pageSize && (
-              <div className="flex justify-center mt-12">
-                <div className="bg-white px-4 py-2 rounded-xl shadow-lg">
-                  <Pagination
-                    current={currentPage}
-                    total={total}
-                    pageSize={pageSize}
-                    onChange={(page) => setCurrentPage(page)}
-                    showSizeChanger={false}
-                    showQuickJumper
-                    showTotal={(total, range) => `${range[0]}-${range[1]} của ${total} tin tức`}
-                  />
-                </div>
-              </div>
+              <DarkPagination
+                current={currentPage}
+                total={total}
+                pageSize={pageSize}
+                onChange={(page) => {
+                  setIsScrolling(true);
+                  setCurrentPage(page);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  // Wait for scroll to complete before showing animation
+                  setTimeout(() => {
+                    setIsScrolling(false);
+                  }, 500);
+                }}
+                showTotal={(total, range) => (
+                  <span className="text-slate-300">
+                    {range[0]}-{range[1]} của {total} tin tức
+                  </span>
+                )}
+                className="mt-12"
+              />
             )}
           </>
         ) : (

@@ -172,3 +172,135 @@ body {
   border-color: #3b82f6 !important;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
 }
+
+/* User Dropdown Menu Styles */
+.user-dropdown-overlay .ant-dropdown-menu {
+  background: #1e293b !important;
+  border: 1px solid #334155 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+  padding: 8px 0 !important;
+  min-width: 220px !important;
+}
+
+.user-dropdown-overlay .ant-dropdown-menu-item {
+  padding: 10px 16px !important;
+  color: #e2e8f0 !important;
+  font-size: 14px !important;
+  transition: all 0.2s !important;
+}
+
+.user-dropdown-overlay .ant-dropdown-menu-item:hover {
+  background: #334155 !important;
+  color: #ffffff !important;
+}
+
+.user-dropdown-overlay .ant-dropdown-menu-item-danger {
+  color: #f87171 !important;
+}
+
+.user-dropdown-overlay .ant-dropdown-menu-item-danger:hover {
+  background: #7f1d1d !important;
+  color: #fca5a5 !important;
+}
+
+.user-dropdown-overlay .ant-dropdown-menu-item-icon {
+  color: inherit !important;
+  margin-right: 12px !important;
+}
+
+.user-dropdown-overlay .ant-dropdown-menu-item-disabled {
+  opacity: 1 !important;
+  cursor: default !important;
+}
+
+.user-dropdown-overlay .ant-dropdown-menu-item-disabled:hover {
+  background: transparent !important;
+}
+
+.user-dropdown-overlay .ant-dropdown-menu-item-divider {
+  background: #334155 !important;
+  margin: 8px 0 !important;
+}
+
+/* Auth Page Premium Styles */
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes gradient-xy {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes shine {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); filter: blur(5px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-gradient-xy {
+  background-size: 200% 200%;
+  animation: gradient-xy 15s ease infinite;
+}
+
+.animate-shine {
+  background-size: 200% auto;
+  animation: shine 8s linear infinite;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+.glass-card {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-morphism {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.text-gradient {
+  background: linear-gradient(to right, #60a5fa, #34d399);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}

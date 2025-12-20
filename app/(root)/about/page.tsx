@@ -1,14 +1,25 @@
 "use client";
 
-import { Statistic, Card } from "antd";
+import React from "react";
 import { 
   RocketOutlined, 
   GlobalOutlined, 
   HeartOutlined, 
   SafetyCertificateOutlined,
   ExperimentOutlined,
-  ThunderboltOutlined
+  ThunderboltOutlined,
+  EyeOutlined,
+  FlagOutlined,
+  CheckCircleOutlined,
+  DashboardOutlined,
+  ApiOutlined,
+  ToolOutlined,
+  SunOutlined,
+  UserAddOutlined
 } from "@ant-design/icons";
+import ScrollAnimation from "@/app/components/common/ScrollAnimation";
+import Image from "next/image";
+import DarkConfigProvider from "@/app/components/common/DarkConfigProvider";
 
 const stats = [
   { title: "Học viên", value: "15,000+", icon: <HeartOutlined /> },
@@ -17,176 +28,278 @@ const stats = [
   { title: "Đánh giá 5*", value: "98%", icon: <SafetyCertificateOutlined /> },
 ];
 
+const values = [
+  {
+    icon: <ToolOutlined />,
+    title: "Công nghệ",
+    description: "Đổi mới liên tục để luôn đi đầu trong nhu cầu giáo dục.",
+  },
+  {
+    icon: <SunOutlined />,
+    title: "Minh bạch",
+    description: "Dữ liệu rõ ràng và giao tiếp cởi mở cho tất cả các bên liên quan.",
+  },
+  {
+    icon: <ThunderboltOutlined />,
+    title: "Hiệu quả",
+    description: "Tối ưu hóa quy trình làm việc để tập trung vào điều quan trọng: giảng dạy.",
+  },
+  {
+    icon: <UserAddOutlined />,
+    title: "Lấy người học làm trung tâm",
+    description: "Đặt trải nghiệm học sinh vào trọng tâm của thiết kế.",
+  },
+];
+
+const targetAudiences = [
+  {
+    title: "Trường học",
+    description: "Chuyển đổi số cho giáo dục phổ thông.",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAx9EgMRS3-kDHGtorC-r7NL95AVYF7U1bUWBSdzC0aqsNwzKHV2EuiSq7b-4lqUfO7xlv13Ky9P06s2eu5wDUilLTG4r32B0UujrTLpYJO4sW3zEqBuf-wlFw0EusXYNLLenivEo-w93AJPQsRjyXyTN1MZF9orTICunsFutMcseTtHI2TSLzjjZMK68-UrhcrQBSu-hct7eUuUPIvPEfUEcpE6H59HAo29laPd5yM7RoPZgeTZk_I-LxeYmJCkewRzSSuJUsyJTQ",
+  },
+  {
+    title: "Trung tâm đào tạo",
+    description: "Quản lý linh hoạt cho các khóa học chuyên biệt.",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuC_13-JU4yJLCcS0kKH6thRSH1UXkMZIDiQjyPb7eB_uyj6n6DSjR_uVQdQme23F06ebM0NVMuVXDr-MX2Xej64DT2xgiRG1H70nKp6fS-_hMRE7sBgfVkJfX8HpZGk8Dm_RHJ-Y1Ef5b9nK8T8kGYMAdCwlcV7aDqL_o7y_fqMct5erIPqvQmJ3mQAp4oEydlwGQaHRdZmzWZ54pf0lcKYqb5E9Xv8p1sAUjG21clS5Pxrf4fyftooexi0JZT2hZqxeTSHFiV_98w",
+  },
+  {
+    title: "Giáo viên",
+    description: "Công cụ tự động hóa chấm điểm và theo dõi tiến độ.",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBSQgngMJ9WYFv_aSt6zt7oXhAmjXe6DQ1LUrUUy8byPveUNSJEZX3rIIs_rLgQ5kNc9nQal_Aax08V2FOM21z57v3VoHMQn5Wz-dS7uMsHpUTWZtNCjF6llJc5P5scGl2bi864bxID0J-9HuHSjBbOr3iHDXWb9J-ssYuP0fYOsq8lOXQfgTY4gvv-gTNVPzp1nzd55wiKHMcm0t3rw7FORUQ-sbHvO1Q8ei0kUlgaY003-iPceayYE35bU9AgFDrZp6XUJoByOek",
+  },
+  {
+    title: "Học sinh",
+    description: "Lộ trình học tập cá nhân hóa để đạt kết quả tốt hơn.",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCMaRSQNpeyJbVhXsNNNTcAytC8f_sUSxOB0oP5HtbHZiY-Xi-MSzYZQaCjxsHTrFTui3VrSHctveRij-brueIQxuNSbxG4Y29k7PDpxUV6_ZVI-aOn5FsrAXE5wZGzYX7XXdQor6SI1oVaXwvyxqw0x7b_h2hN2hoQBzBwpJACriCJgsuylvMkSFxppKhuPjfknYaFddf_EkQsrB22QKnfZUE-LJ_uR5Y26ckWb94rUivsuIDS4DRmlZd7DE4fEcx-hwLh-ZSoG50",
+  },
+];
+
 export default function About() {
   return (
-    <main className="min-h-screen bg-[#001529]">
-      {/* 1. Hero Section - Vibrant & Dynamic */}
-      <section className="relative bg-[#001529] text-white overflow-hidden pt-20 pb-32">
-        {/* Abstract Background Shapes */}
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 animate-pulse"></div>
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4"></div>
-        <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-cyan-600/20 rounded-full blur-3xl translate-y-1/3 translate-x-1/4"></div>
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col md:flex-row items-center gap-12">
-            <div className="md:w-1/2 text-center md:text-left">
-              <span className="inline-block py-1 px-4 rounded-full bg-blue-500/20 text-blue-300 font-bold border border-blue-500/30 mb-6 backdrop-blur-sm">
-                VỀ CHÚNG TÔI
-              </span>
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight">
-                Kiến tạo <br/>
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
-                  Tương lai số
-                </span>
-              </h1>
-              <p className="text-lg text-gray-300 mb-8 leading-relaxed max-w-lg mx-auto md:mx-0">
-                Chúng tôi không chỉ cung cấp khóa học. Chúng tôi xây dựng môi trường học tập tiên tiến, nơi công nghệ và tri thức hòa quyện.
-              </p>
-              <div className="flex gap-4 justify-center md:justify-start">
-                <button className="px-8 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition-all shadow-lg hover:shadow-blue-500/50 transform hover:-translate-y-1">
-                  Tham gia ngay
-                </button>
-                <button className="px-8 py-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl font-bold backdrop-blur-sm transition-all">
-                  Tìm hiểu thêm
-                </button>
-              </div>
-            </div>
-            
-            {/* Right Side Visual */}
-            <div className="md:w-1/2 relative">
-               <div className="relative w-full aspect-square max-w-md mx-auto">
-                  <div className="absolute inset-4 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-[2rem] rotate-3 opacity-60 blur-lg"></div>
-                  <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 rounded-[2rem] border border-white/10 shadow-2xl p-8 flex flex-col justify-center items-center text-center">
-                      <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/40">
-                         <ThunderboltOutlined className="text-4xl text-white"/>
-                      </div>
-                      <h3 className="text-2xl font-bold text-white mb-2">EduLearn Next</h3>
-                      <p className="text-gray-400">Nền tảng giáo dục 4.0</p>
+    <main className="min-h-screen bg-[#0f172a]">
+      {/* Hero Section */}
+      <ScrollAnimation direction="up" delay={0}>
+        <section className="relative bg-[#0f172a] text-white overflow-hidden pt-20 pb-32">
+          {/* Abstract Background Shapes */}
+          <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-blue-600/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 animate-pulse"></div>
+          <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-purple-600/20 rounded-full blur-3xl translate-y-1/3 -translate-x-1/4"></div>
+          
+          <div className="container mx-auto px-4 md:px-10  relative z-10">
+            <div className="flex flex-col-reverse md:flex-row items-center gap-8 md:gap-12">
+              {/* Left Content */}
+              <div className="flex-1 text-center md:text-left">
+                <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-4">
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight text-white">
+                      Chúng tôi xây dựng nền tảng giáo dục số với{" "}
+                      <span className="text-blue-400">AI</span>
+                    </h1>
+                    <p className="text-lg text-slate-400 leading-relaxed max-w-xl mx-auto md:mx-0">
+                      Trao quyền cho trường học, giáo viên và học sinh với LMS hàng đầu cho chuyển đổi số tại Việt Nam. Trải nghiệm tương lai của giáo dục ngay hôm nay.
+                    </p>
                   </div>
-                  {/* Floating elements */}
-                  <div className="absolute -top-6 -right-6 w-20 h-20 bg-white rounded-2xl shadow-xl flex items-center justify-center animate-bounce duration-[3000ms]">
-                      <GlobalOutlined className="text-3xl text-purple-600"/>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
+                    <button className="h-12 px-6 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-base transition-colors">
+                      Tìm hiểu thêm
+                    </button>
+                    <button className="h-12 px-6 rounded-lg bg-white/10 border border-white/20 text-white hover:bg-white/20 font-bold text-base transition-colors">
+                      Xem Demo
+                    </button>
                   </div>
-                  <div className="absolute -bottom-6 -left-6 w-24 h-16 bg-blue-600 rounded-xl shadow-xl flex items-center justify-center animate-pulse">
-                      <span className="font-bold text-white text-xl">A+</span>
-                  </div>
-               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 2. Floating Stats Bar */}
-      <div className="container mx-auto px-4 pb-10 -mt-16 relative z-20">
-        <div className="bg-[#1e293b] rounded-3xl shadow-2xl shadow-black/40 p-8 md:p-12 border border-slate-700">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-slate-700">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center group px-4">
-                <div className="mb-4 inline-flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 text-blue-400 text-2xl group-hover:scale-110 transition-transform duration-300 border border-white/5">
-                  {stat.icon}
                 </div>
-                <Statistic
-                  value={stat.value}
-                  valueStyle={{ fontWeight: 800, fontSize: '36px', color: '#ffffff' }}
-                />
-                <div className="text-slate-400 font-medium mt-1 text-sm tracking-wide uppercase">{stat.title}</div>
               </div>
-            ))}
+              
+              {/* Right Image */}
+              <div className="w-full md:w-1/2 lg:w-3/5 aspect-video md:aspect-4/3 lg:aspect-video rounded-xl overflow-hidden shadow-2xl bg-slate-800">
+                <img
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFmUDfLwpFXm7tBnSg2ymj5N0YD-RRys7iyg-HzEHNAeQRZdAP7f2eYisPzkFGRmZaFPB2yss1pt8AYvIQKjLXCGVxt4dQErmcZpmM0uceSPNM91iuUp0EAJWvbjZAQFNsvxuJeWfuXTz_Ga5gDHoUYzHlVU0cPIR-1pCcJGbLHDPKV7favVKZLC63VjNyG4m8Xw38yoBJMyNaXDHWOVtnybHlugDJq2mj8X-8lPQPUM6n4neU5wq-DLVX0ai7E3ETVffz6zQI8Bg"
+                  alt="Modern digital classroom with students using laptops"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+      </ScrollAnimation>
+
+      {/* Stats Bar */}
+      <ScrollAnimation direction="up" delay={100}>
+        <div className="container mx-auto px-4 md:px-10 pb-10 -mt-16 relative z-20">
+          <div className="bg-[#1e293b] rounded-3xl shadow-2xl shadow-black/40 p-8 md:p-12 border border-slate-700">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 divide-x divide-slate-700">
+              {stats.map((stat, index) => (
+                <div key={index} className="text-center group px-4">
+                  <div className="mb-4 inline-flex items-center justify-center w-14 h-14 rounded-full bg-linear-to-br from-blue-500/20 to-purple-500/20 text-blue-400 text-2xl group-hover:scale-110 transition-transform duration-300 border border-white/5">
+                    {stat.icon}
+                  </div>
+                  <div className="text-4xl font-black text-white mb-1">{stat.value}</div>
+                  <div className="text-slate-400 font-medium text-sm tracking-wide uppercase">{stat.title}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      </ScrollAnimation>
 
-      {/* 3. Bento Grid - Mission & Vision */}
-      <section className="py-24 bg-[#0B1120] relative overflow-hidden">
-        {/* Decorative background elements for dark mode */}
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-900 to-transparent opacity-50"></div>
-        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-900/10 rounded-full blur-3xl translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
-
-        <div className="container mx-auto px-4 relative z-10">
-           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-white mb-4">Giá trị cốt lõi</h2>
-            <div className="w-20 h-1.5 bg-blue-600 mx-auto rounded-full"></div>
-           </div>
-
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
-              {/* Mission - Large Box */}
-              <div className="md:col-span-2 bg-[#111827] rounded-3xl p-10 text-white shadow-xl relative overflow-hidden group border border-blue-500/20 hover:border-blue-500/40 transition-colors">
-                 <div className="absolute top-0 right-0 w-64 h-64 bg-blue-900/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl group-hover:bg-blue-900/20 transition-colors duration-700"></div>
-                 
-                 <div className="relative z-10 flex flex-col h-full justify-between">
-                    <div className="w-14 h-14 bg-blue-900/20 rounded-2xl flex items-center justify-center backdrop-blur-md mb-6 border border-blue-500/20">
-                       <RocketOutlined className="text-3xl text-blue-400"/>
-                    </div>
-                    <div>
-                      <h3 className="text-3xl font-bold mb-4 text-white">Sứ mệnh của chúng tôi</h3>
-                      <p className="text-slate-400 text-lg leading-relaxed max-w-xl">
-                        Trao quyền cho người học thông qua công nghệ. Chúng tôi xây dựng cầu nối giữa tri thức hàn lâm và ứng dụng thực tiễn, giúp mọi cá nhân phát huy tối đa tiềm năng.
-                      </p>
-                    </div>
-                 </div>
+      {/* Vision & Mission Section */}
+      <ScrollAnimation direction="up" delay={200}>
+        <section className="py-16 bg-[#1a2332]">
+          <div className="container mx-auto px-4 md:px-10 ">
+            <div className="flex flex-col gap-10">
+              <div className="flex flex-col gap-4 text-center md:text-left">
+                <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+                  Tầm nhìn & Sứ mệnh của chúng tôi
+                </h2>
+                <p className="text-lg text-slate-400 max-w-3xl">
+                  Chúng tôi cam kết cách mạng hóa lĩnh vực giáo dục thông qua công nghệ đáng tin cậy và đổi mới.
+                </p>
               </div>
-
-              {/* Vision - Tall Box (Dark Mode) */}
-              <div className="bg-[#111827] rounded-3xl p-10 shadow-xl border border-slate-800 flex flex-col hover:border-purple-500/30 transition-colors group">
-                 <div className="w-14 h-14 bg-purple-900/20 text-purple-400 rounded-2xl flex items-center justify-center mb-6 border border-purple-500/20 group-hover:scale-110 transition-transform">
-                   <HeartOutlined className="text-3xl"/>
-                 </div>
-                 <h3 className="text-2xl font-bold text-white mb-4">Tầm nhìn</h3>
-                 <p className="text-slate-400 leading-relaxed flex-1">
-                   Trở thành hệ sinh thái giáo dục số 1 khu vực, nơi mỗi giờ học là một trải nghiệm đầy cảm hứng và hiệu quả.
-                 </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Vision Card */}
+                <div className="flex flex-col gap-4 rounded-xl border border-slate-700 bg-[#1e293b] p-8 hover:border-blue-500/50 transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
+                    <EyeOutlined className="text-3xl" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-xl font-bold text-white">Tầm nhìn của chúng tôi</h3>
+                    <p className="text-slate-400 leading-relaxed">
+                      Trở thành đối tác LMS được hỗ trợ bởi AI hàng đầu cho chuyển đổi số trong các trường học và trung tâm đào tạo trên khắp Việt Nam.
+                    </p>
+                  </div>
+                </div>
+                {/* Mission Card */}
+                <div className="flex flex-col gap-4 rounded-xl border border-slate-700 bg-[#1e293b] p-8 hover:border-blue-500/50 transition-colors">
+                  <div className="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
+                    <FlagOutlined className="text-3xl" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-xl font-bold text-white">Sứ mệnh của chúng tôi</h3>
+                    <p className="text-slate-400 leading-relaxed">
+                      Trao quyền cho các tổ chức giáo dục với công nghệ minh bạch, hiệu quả và lấy người học làm trung tâm, kết nối khoảng cách giữa giảng dạy truyền thống và tương lai số.
+                    </p>
+                  </div>
+                </div>
               </div>
-
-              {/* Core Values - Box 3 (Dark Mode) */}
-              <div className="bg-[#111827] rounded-3xl p-10 shadow-xl border border-slate-800 hover:border-emerald-500/30 transition-colors group">
-                 <div className="w-14 h-14 bg-emerald-900/20 text-emerald-400 rounded-2xl flex items-center justify-center mb-6 border border-emerald-500/20 group-hover:scale-110 transition-transform">
-                   <SafetyCertificateOutlined className="text-3xl"/>
-                 </div>
-                 <h3 className="text-2xl font-bold text-white mb-4">Chất lượng</h3>
-                 <p className="text-slate-400 leading-relaxed">
-                   Cam kết nội dung chuẩn mực, được kiểm duyệt bởi hội đồng chuyên môn uy tín.
-                 </p>
-              </div>
-
-              {/* Innovation - Box 4 */}
-              <div className="md:col-span-2 bg-[#111827] text-white rounded-3xl p-10 shadow-xl border border-slate-800 relative overflow-hidden group hover:border-cyan-500/30 transition-colors">
-                 <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-cyan-900/10 rounded-full blur-3xl group-hover:bg-cyan-900/20 transition-colors"></div>
-                 
-                 <div className="relative z-10 flex items-center gap-8">
-                    <div className="w-14 h-14 bg-cyan-900/20 rounded-2xl flex items-center justify-center shrink-0 border border-cyan-500/20">
-                       <ExperimentOutlined className="text-3xl text-cyan-400"/>
-                    </div>
-                    <div>
-                       <h3 className="text-2xl font-bold mb-2 text-white">Đổi mới sáng tạo</h3>
-                       <p className="text-slate-400 max-w-2xl">
-                         Liên tục cập nhật công nghệ AI, Big Data vào giảng dạy để cá nhân hóa lộ trình học tập.
-                       </p>
-                    </div>
-                 </div>
-              </div>
-           </div>
-        </div>
-      </section>
-
-      {/* 4. CTA Section */}
-      <section className="py-20 bg-[#0B1120]">
-         <div className="container mx-auto px-4 max-w-5xl">
-            <div className="bg-[#111827] rounded-[2.5rem] p-12 md:p-20 text-center text-white relative overflow-hidden shadow-2xl shadow-blue-900/20 border border-slate-800">
-               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-900/20 rounded-full blur-[100px] pointer-events-none"></div>
-
-               <div className="relative z-10">
-                  <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">Sẵn sàng bứt phá?</h2>
-                  <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto">
-                     Tham gia cộng đồng hơn 15,000 học viên ngay hôm nay và bắt đầu hành trình chinh phục tri thức.
-                  </p>
-                  <button className="bg-blue-600 text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-blue-500 transition-all transform hover:-translate-y-1 shadow-lg shadow-blue-600/30">
-                     Đăng ký miễn phí
-                  </button>
-               </div>
             </div>
-         </div>
-      </section>
+          </div>
+        </section>
+      </ScrollAnimation>
+
+      {/* Technology & Innovation Section */}
+      <ScrollAnimation direction="up" delay={300}>
+        <section className="py-16 bg-[#0f172a]">
+          <div className="container mx-auto px-4 md:px-10 ">
+            <div className="flex flex-col gap-10">
+              <div className="flex flex-col gap-4 text-center">
+                <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+                  Công nghệ & Đổi mới
+                </h2>
+                <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+                  Nền tảng của chúng tôi tận dụng các tính năng tiên tiến để tối ưu hóa quy trình giáo dục và đảm bảo tính toàn vẹn học thuật.
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Feature 1 */}
+                <div className="flex flex-col gap-4 rounded-xl bg-[#1e293b] p-6 shadow-sm border border-slate-700">
+                  <div className="text-blue-400 mb-2">
+                    <CheckCircleOutlined className="text-4xl" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-lg font-bold text-white">AI Chống gian lận</h3>
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                      Đảm bảo tính toàn vẹn trong các kỳ thi và bài tập với hệ thống giám sát AI tiên tiến phát hiện bất thường trong thời gian thực.
+                    </p>
+                  </div>
+                </div>
+                {/* Feature 2 */}
+                <div className="flex flex-col gap-4 rounded-xl bg-[#1e293b] p-6 shadow-sm border border-slate-700">
+                  <div className="text-blue-400 mb-2">
+                    <ApiOutlined className="text-4xl" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-lg font-bold text-white">Tích hợp liền mạch</h3>
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                      Kết nối dễ dàng với các công cụ phổ biến như Azota, Google Meet và Zoom để tạo hệ sinh thái học tập thống nhất.
+                    </p>
+                  </div>
+                </div>
+                {/* Feature 3 */}
+                <div className="flex flex-col gap-4 rounded-xl bg-[#1e293b] p-6 shadow-sm border border-slate-700">
+                  <div className="text-blue-400 mb-2">
+                    <DashboardOutlined className="text-4xl" />
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-lg font-bold text-white">Quản lý tập trung</h3>
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                      Một bảng điều khiển thống nhất để quản lý học sinh, lớp học, bài tập và điểm số một cách hiệu quả, tiết kiệm hàng giờ công việc hành chính.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </ScrollAnimation>
+
+      {/* Values for Education Section */}
+      <ScrollAnimation direction="up" delay={400}>
+        <section className="py-16 bg-[#1a2332] border-t border-slate-800">
+          <div className="container mx-auto px-4 md:px-10 ">
+            <div className="flex flex-col gap-10">
+              <h2 className="text-3xl md:text-4xl font-bold text-white text-center leading-tight">
+                Giá trị cho giáo dục
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {values.map((value, index) => (
+                  <div key={index} className="flex flex-col items-center text-center gap-3 p-4">
+                    <div className="w-14 h-14 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 mb-2">
+                      {value.icon}
+                    </div>
+                    <h3 className="text-lg font-bold text-white">{value.title}</h3>
+                    <p className="text-slate-400 text-sm">{value.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      </ScrollAnimation>
+
+      {/* Target Audience Section */}
+      <ScrollAnimation direction="up" delay={500}>
+        <section className="py-16 bg-[#0f172a]">
+          <div className="container mx-auto px-4 md:px-10 ">
+            <div className="flex flex-col gap-10">
+              <div className="flex flex-col gap-2">
+                <h2 className="text-3xl font-bold text-white leading-tight">Chúng tôi phục vụ ai</h2>
+                <p className="text-slate-400 text-base">Hỗ trợ toàn bộ hệ sinh thái giáo dục.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {targetAudiences.map((audience, index) => (
+                  <div key={index} className="group relative overflow-hidden rounded-xl h-64 cursor-pointer">
+                    <div className="absolute inset-0 transition-transform duration-500 group-hover:scale-110">
+                      <Image
+                        src={audience.image}
+                        alt={audience.title}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      />
+                    </div>
+                    <div className="absolute inset-0 bg-linear-to-t from-black/80 to-transparent"></div>
+                    <div className="absolute bottom-0 left-0 p-6 z-10">
+                      <h3 className="text-white text-xl font-bold mb-1">{audience.title}</h3>
+                      <p className="text-white/80 text-sm">{audience.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      </ScrollAnimation>
+
+    
     </main>
   );
 }
-

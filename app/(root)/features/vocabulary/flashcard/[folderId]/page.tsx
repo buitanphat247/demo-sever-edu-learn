@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { App, Spin, Button, Tag, ConfigProvider, theme } from "antd";
 import { LeftOutlined, RightOutlined, RollbackOutlined, SoundOutlined, SwapOutlined } from "@ant-design/icons";
 import { getVocabulariesByFolder, type VocabularyResponse } from "@/lib/api/vocabulary";
-import Image from "next/image";
+import { IoArrowBackOutline } from "react-icons/io5";
 
 type Difficulty = "easy" | "medium" | "hard";
 
@@ -21,9 +21,6 @@ export default function VocabularyFlashcard() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [difficulties, setDifficulties] = useState<Record<number, Difficulty>>({});
   const [isFlipped, setIsFlipped] = useState(false);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  
-  const navigationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchVocabularies = useCallback(async () => {
     if (!folderId) return;
@@ -60,11 +57,6 @@ export default function VocabularyFlashcard() {
     if (folderId) {
       fetchVocabularies();
     }
-    return () => {
-      if (navigationTimeoutRef.current) {
-        clearTimeout(navigationTimeoutRef.current);
-      }
-    };
   }, [folderId, fetchVocabularies]);
 
   const folderName = useMemo(() => vocabularies[0]?.folder?.folderName || "", [vocabularies]);
@@ -86,41 +78,20 @@ export default function VocabularyFlashcard() {
   );
 
   const handlePrev = useCallback(() => {
-    if (vocabularies.length === 0 || isTransitioning) return;
-    
-    if (navigationTimeoutRef.current) {
-      clearTimeout(navigationTimeoutRef.current);
-    }
-    
-    setIsTransitioning(true);
+    if (vocabularies.length === 0) return;
     setIsFlipped(false);
-    
-    navigationTimeoutRef.current = setTimeout(() => {
-      setCurrentIndex((prev) => (prev === 0 ? vocabularies.length - 1 : prev - 1));
-      setIsTransitioning(false);
-    }, 150);
-  }, [vocabularies.length, isTransitioning]);
+    setCurrentIndex((prev) => (prev === 0 ? vocabularies.length - 1 : prev - 1));
+  }, [vocabularies.length]);
 
   const handleNext = useCallback(() => {
-    if (vocabularies.length === 0 || isTransitioning) return;
-    
-    if (navigationTimeoutRef.current) {
-      clearTimeout(navigationTimeoutRef.current);
-    }
-    
-    setIsTransitioning(true);
+    if (vocabularies.length === 0) return;
     setIsFlipped(false);
-    
-    navigationTimeoutRef.current = setTimeout(() => {
-      setCurrentIndex((prev) => (prev === vocabularies.length - 1 ? 0 : prev + 1));
-      setIsTransitioning(false);
-    }, 150);
-  }, [vocabularies.length, isTransitioning]);
+    setCurrentIndex((prev) => (prev === vocabularies.length - 1 ? 0 : prev + 1));
+  }, [vocabularies.length]);
 
   const handleFlip = useCallback(() => {
-    if (isTransitioning) return;
     setIsFlipped((prev) => !prev);
-  }, [isTransitioning]);
+  }, []);
 
   const handleSetDifficulty = useCallback((level: Difficulty) => {
     if (!currentVocab) return;
@@ -202,9 +173,10 @@ export default function VocabularyFlashcard() {
               </div>
 
               <Button
-                icon={<RollbackOutlined />}
+                icon={<IoArrowBackOutline />}
                 onClick={() => router.push(`/features/vocabulary/${folderId}`)}
-                className="bg-[#1e293b] border-slate-700 text-slate-300 hover:text-blue-400 hover:border-blue-400"
+                size="large"
+                className="bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 border-0 text-white font-medium shadow-lg shadow-blue-900/30 hover:shadow-blue-900/50 transition-all duration-300 hover:scale-105"
               >
                 Quay lại danh sách
               </Button>
@@ -243,22 +215,6 @@ export default function VocabularyFlashcard() {
                         transform: isFlipped ? "rotateY(180deg)" : "rotateY(0deg)",
                       }}
                     >
-                      {currentVocab.avatarUrl ? (
-                        <div className="w-40 h-40 rounded-2xl overflow-hidden mb-8 shadow-lg border border-slate-600/50 bg-slate-900">
-                          <Image
-                            src={currentVocab.avatarUrl}
-                            alt={currentVocab.content}
-                            width={160}
-                            height={160}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      ) : (
-                        <div className="w-32 h-32 mb-8 bg-slate-800 rounded-2xl flex items-center justify-center text-5xl font-bold text-slate-600 border border-slate-700">
-                          {currentVocab.content.charAt(0)}
-                        </div>
-                      )}
-
                       <div className="flex items-center gap-4 mb-4">
                         <h2 className="text-5xl font-extrabold text-white tracking-tight">{currentVocab.content}</h2>
                         {currentVocab.audioUrl?.[0]?.url && (
@@ -349,7 +305,7 @@ export default function VocabularyFlashcard() {
                       icon={<LeftOutlined />}
                       onClick={handlePrev}
                       size="large"
-                      disabled={vocabularies.length <= 1 || isTransitioning}
+                      disabled={vocabularies.length <= 1}
                       className="h-12 bg-[#1e293b] border-slate-700 text-slate-300 hover:text-blue-400 hover:border-blue-400 hover:bg-slate-800"
                     >
                       Trước
@@ -366,7 +322,7 @@ export default function VocabularyFlashcard() {
                       iconPosition="end"
                       onClick={handleNext}
                       size="large"
-                      disabled={vocabularies.length <= 1 || isTransitioning}
+                      disabled={vocabularies.length <= 1}
                       className="h-12 bg-[#1e293b] border-slate-700 text-slate-300 hover:text-blue-400 hover:border-blue-400 hover:bg-slate-800"
                     >
                       Tiếp

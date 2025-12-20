@@ -6,7 +6,6 @@ import {
   ReadOutlined,
   BellOutlined,
   UserOutlined,
-  MessageOutlined,
   ArrowRightOutlined,
 } from "@ant-design/icons";
 import { Card } from "antd";
@@ -48,15 +47,6 @@ const dashboardItems = [
     iconBg: "bg-cyan-100",
     iconColor: "text-cyan-600",
     path: "/admin/students",
-  },
-  {
-    icon: MessageOutlined,
-    title: "Chat / Hỏi đáp",
-    description: "Quản lý chat và hỏi đáp trong lớp học",
-    gradient: "from-pink-500 to-pink-600",
-    iconBg: "bg-pink-100",
-    iconColor: "text-pink-600",
-    path: "/admin/class-chat",
   },
   {
     icon: ReadOutlined,

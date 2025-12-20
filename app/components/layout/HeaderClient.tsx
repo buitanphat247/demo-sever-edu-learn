@@ -11,6 +11,7 @@ import SignUp from "../auth/SignUp";
 import { getCurrentUser } from "@/lib/api/users";
 import { signOut } from "@/lib/api/auth";
 import type { AuthState } from "@/lib/utils/auth-server";
+import ScrollProgress from "./ScrollProgress";
 
 interface HeaderClientProps {
   initialAuth: AuthState;
@@ -151,6 +152,7 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
 
   return (
     <>
+      <ScrollProgress />
       <SignIn
         open={isSignInOpen}
         onCancel={() => setIsSignInOpen(false)}
@@ -167,7 +169,7 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
           setIsSignInOpen(true);
         }}
       />
-      <header className="bg-[#001529] shadow-md sticky top-0 z-50">
+      <header className="bg-[#001529] shadow-xl shadow-slate-800 sticky top-0 z-50 ">
         <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-3 group">
             <div className="w-12 h-12 relative transform group-hover:scale-105 transition-transform flex items-center justify-center">
@@ -241,36 +243,40 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
                     {
                       key: 'user-info',
                       label: (
-                        <div className="flex flex-col px-1 py-1 cursor-default">
-                          <span className="font-bold text-gray-800 text-base">{fixUtf8(user.fullname || user.username)}</span>
-                          <span className="text-xs text-gray-500">Thành viên</span>
+                        <div className="flex flex-col px-2 py-2 cursor-default">
+                          <span className="font-semibold text-white text-base leading-tight">{fixUtf8(user.fullname || user.username)}</span>
+                          <span className="text-xs text-slate-400 mt-0.5">Thành viên</span>
                         </div>
                       ),
-                      style: { cursor: 'default', backgroundColor: 'transparent' },
+                      style: { cursor: 'default', backgroundColor: 'transparent', padding: '8px 12px' },
                       disabled: true,
                     },
                     { type: 'divider' },
                     {
                       key: "profile",
-                      icon: <UserOutlined />,
-                      label: <Link href="/profile">Hồ sơ cá nhân</Link>,
+                      icon: <UserOutlined className="text-slate-300" />,
+                      label: <Link href="/profile" className="text-slate-200 hover:text-white">Hồ sơ cá nhân</Link>,
+                      style: { padding: '10px 16px' },
                     },
                     {
                       key: "logout",
                       icon: (
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
                       ),
-                      label: "Đăng xuất",
+                      label: <span className="text-red-400 font-medium">Đăng xuất</span>,
                       onClick: handleLogout,
                       danger: true,
+                      style: { padding: '10px 16px' },
                     },
-                  ] 
+                  ],
+                  className: "user-dropdown-menu"
                 }} 
                 placement="bottomRight" 
                 arrow={{ pointAtCenter: true }}
                 trigger={['click']}
+                classNames={{ root: "user-dropdown-overlay" }}
               >
                 <div className="flex items-center gap-3 cursor-pointer group py-1">
                   <div className="w-10 h-10 rounded-full border-2 border-white/30 bg-white/20 backdrop-blur-sm flex items-center justify-center text-white group-hover:bg-white group-hover:text-blue-600 transition-all duration-300 shadow-sm relative overflow-hidden">

@@ -1,6 +1,6 @@
 "use client";
 
-import { Pagination, Input, Select, ConfigProvider, theme } from "antd";
+import { Input, Select } from "antd";
 import { useState, useMemo } from "react";
 import {
   CalendarOutlined,
@@ -9,83 +9,11 @@ import {
   SearchOutlined,
 } from "@ant-design/icons";
 import EventDetailModal, { EventDetail } from "@/app/components/events/EventDetailModal";
+import DarkPagination from "@/app/components/common/DarkPagination";
+import ScrollAnimation from "@/app/components/common/ScrollAnimation";
+import { events } from "./mock_data";
 
 const { Search } = Input;
-
-const events: EventDetail[] = [
-  {
-    id: 1,
-    title: "Hội thảo: Công nghệ trong Giáo dục",
-    date: "25/01/2024",
-    time: "14:00 - 17:00",
-    location: "Trực tuyến",
-    status: "Sắp diễn ra",
-    color: "blue",
-    description: "Hội thảo sẽ tập trung vào các công nghệ mới nhất trong giáo dục, bao gồm AI, VR/AR, và các nền tảng học tập trực tuyến.",
-    organizer: "Ban Giáo dục",
-    participants: "100+ người tham gia",
-  },
-  {
-    id: 2,
-    title: "Workshop: Kỹ năng thuyết trình hiệu quả",
-    date: "20/01/2024",
-    time: "09:00 - 12:00",
-    location: "Phòng A101",
-    status: "Đang diễn ra",
-    color: "green",
-    description: "Workshop thực hành về kỹ năng thuyết trình, giúp bạn tự tin hơn khi trình bày ý tưởng trước đám đông.",
-    organizer: "Trung tâm Đào tạo",
-    participants: "50 người tham gia",
-  },
-  {
-    id: 3,
-    title: "Cuộc thi: Sáng tạo dự án số",
-    date: "15/01/2024",
-    time: "08:00 - 18:00",
-    location: "Hội trường lớn",
-    status: "Đã kết thúc",
-    color: "default",
-    description: "Cuộc thi dành cho các dự án sáng tạo về công nghệ số, khuyến khích tinh thần đổi mới và sáng tạo.",
-    organizer: "Ban Tổ chức",
-    participants: "200+ thí sinh",
-  },
-  {
-    id: 4,
-    title: "Seminar: Phương pháp học tập hiện đại",
-    date: "28/01/2024",
-    time: "10:00 - 12:00",
-    location: "Trực tuyến",
-    status: "Sắp diễn ra",
-    color: "blue",
-    description: "Seminar về các phương pháp học tập hiện đại, giúp nâng cao hiệu quả học tập và phát triển kỹ năng.",
-    organizer: "Phòng Đào tạo",
-    participants: "80+ người tham gia",
-  },
-  {
-    id: 5,
-    title: "Training: Kỹ năng làm việc nhóm",
-    date: "22/01/2024",
-    time: "14:00 - 17:00",
-    location: "Phòng B202",
-    status: "Đang diễn ra",
-    color: "green",
-    description: "Khóa đào tạo về kỹ năng làm việc nhóm, giao tiếp và hợp tác hiệu quả trong môi trường làm việc.",
-    organizer: "Trung tâm Phát triển Kỹ năng",
-    participants: "60 người tham gia",
-  },
-  {
-    id: 6,
-    title: "Hội thảo: Tương lai của AI trong giáo dục",
-    date: "12/01/2024",
-    time: "09:00 - 11:00",
-    location: "Hội trường lớn",
-    status: "Đã kết thúc",
-    color: "default",
-    description: "Hội thảo về tương lai của trí tuệ nhân tạo trong giáo dục, các xu hướng và ứng dụng thực tế.",
-    organizer: "Ban Công nghệ",
-    participants: "150+ người tham gia",
-  },
-];
 
 
 interface CardEventProps {
@@ -123,7 +51,7 @@ function CardEvent({ id, title, date, time, location, status, color, onDetailCli
         </div>
 
         {/* Title */}
-        <h3 className="text-xl font-bold text-white mb-4 line-clamp-2 group-hover:text-blue-400 transition-colors">
+        <h3 className="line-clamp-1 text-xl font-bold text-white mb-4  group-hover:text-blue-400 transition-colors">
           {title}
         </h3>
 
@@ -166,7 +94,9 @@ export default function Events() {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<EventDetail | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const pageSize = 6;
+  const [loading, setLoading] = useState(false);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const pageSize = 18;
 
   const filteredEvents = useMemo(() => {
     return events.filter((event) => {
@@ -187,11 +117,17 @@ export default function Events() {
   const handleSearch = (value: string) => {
     setSearchText(value);
     setCurrentPage(1);
+    // Simulate loading when searching
+    setLoading(true);
+    setTimeout(() => setLoading(false), 300);
   };
 
   const handleStatusChange = (value: string) => {
     setSelectedStatus(value);
     setCurrentPage(1);
+    // Simulate loading when filtering
+    setLoading(true);
+    setTimeout(() => setLoading(false), 300);
   };
 
   const handleEventClick = (event: EventDetail) => {
@@ -205,7 +141,7 @@ export default function Events() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0f172a] pb-20">
+    <main className="min-h-screen bg-[#0f172a]">
       <div className="container mx-auto px-4 py-12">
         <EventDetailModal open={isModalOpen} event={selectedEvent} onCancel={handleModalClose} />
 
@@ -219,86 +155,72 @@ export default function Events() {
         </div>
 
         {/* Search & Filter Section */}
-        {/* Search & Filter Section */}
         <div className="mb-12 max-w-4xl mx-auto">
-          <ConfigProvider
-            theme={{
-              algorithm: theme.darkAlgorithm,
-              token: {
-                colorBgContainer: '#1e293b',
-                colorBorder: '#334155',
-                colorPrimary: '#3b82f6',
-                borderRadius: 12,
-                controlHeight: 50,
-                fontSize: 16,
-              },
-              components: {
-                Input: {
-                  activeBorderColor: '#60a5fa',
-                  hoverBorderColor: '#60a5fa',
-                  paddingInline: 20,
-                },
-                Select: {
-                  optionSelectedBg: '#334155',
-                }
-              }
-            }}
-          >
-            <div className="flex flex-col md:flex-row gap-4 items-center">
-              <div className="flex-1 w-full">
-                <Input
-                  prefix={<SearchOutlined className="text-slate-400 text-xl mr-2" />}
-                  placeholder="Tìm kiếm sự kiện..."
-                  allowClear
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="w-full shadow-lg shadow-black/20"
-                />
-              </div>
-              <div className="w-full md:w-64">
-                <Select
-                  placeholder="Chọn trạng thái"
-                  allowClear
-                  className="w-full shadow-lg shadow-black/20"
-                  onChange={handleStatusChange}
-                  options={statuses.map((status) => ({ label: status, value: status }))}
-                />
-              </div>
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex-1 w-full">
+              <Input
+                prefix={<SearchOutlined className="text-slate-400 text-xl mr-2" />}
+                placeholder="Tìm kiếm sự kiện..."
+                allowClear
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full shadow-lg shadow-black/20"
+              />
             </div>
-          </ConfigProvider>
+            <div className="w-full md:w-64">
+              <Select
+                placeholder="Chọn trạng thái"
+                allowClear
+                className="w-full shadow-lg shadow-black/20"
+                onChange={handleStatusChange}
+                options={statuses.map((status) => ({ label: status, value: status }))}
+              />
+            </div>
+          </div>
         </div>
 
         {currentEvents.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentEvents.map((event) => (
-                <CardEvent
-                  key={event.id}
-                  id={event.id}
-                  title={event.title}
-                  date={event.date}
-                  time={event.time}
-                  location={event.location}
-                  status={event.status}
-                  color={event.color}
-                  onDetailClick={() => handleEventClick(event)}
-                />
+              {currentEvents.map((event, index) => (
+                <ScrollAnimation
+                  key={`${event.id}-${currentPage}`}
+                  direction="up"
+                  delay={isScrolling ? 500 + (index * 50) : index * 50}
+                >
+                  <CardEvent
+                    id={event.id}
+                    title={event.title}
+                    date={event.date}
+                    time={event.time}
+                    location={event.location}
+                    status={event.status}
+                    color={event.color}
+                    onDetailClick={() => handleEventClick(event)}
+                  />
+                </ScrollAnimation>
               ))}
             </div>
 
             {total > pageSize && (
-              <div className="flex justify-center mt-12">
-                <div className="bg-white px-4 py-2 rounded-xl shadow-lg">
-                  <Pagination
-                    current={currentPage}
-                    total={total}
-                    pageSize={pageSize}
-                    onChange={(page) => setCurrentPage(page)}
-                    showSizeChanger={false}
-                    showQuickJumper
-                    showTotal={(total, range) => `${range[0]}-${range[1]} của ${total} sự kiện`}
-                  />
-                </div>
-              </div>
+              <DarkPagination
+                current={currentPage}
+                total={total}
+                pageSize={pageSize}
+                onChange={(page) => {
+                  setIsScrolling(true);
+                  setCurrentPage(page);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  // Wait for scroll to complete before showing animation
+                  setTimeout(() => {
+                    setIsScrolling(false);
+                  }, 500);
+                }}
+                showTotal={(total, range) => (
+                  <span className="text-slate-300">
+                    {range[0]}-{range[1]} của {total} sự kiện
+                  </span>
+                )}
+              />
             )}
           </>
         ) : (

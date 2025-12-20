@@ -10,7 +10,6 @@ import {
   CloudDownloadOutlined,
   BellOutlined,
   UserOutlined,
-  MessageOutlined,
   ReadOutlined,
 } from "@ant-design/icons";
 const menuItems = [
@@ -19,7 +18,6 @@ const menuItems = [
   { path: "/admin/notification", icon: BellOutlined, label: "Quản lý Thông báo" },
   { path: "/admin/classes", icon: AppstoreOutlined, label: "Quản lý Lớp học" },
   { path: "/admin/students", icon: UserOutlined, label: "Quản lý Học sinh" },
-  { path: "/admin/class-chat", icon: MessageOutlined, label: "Chat / Hỏi đáp" },
   { path: "/admin/document-crawl", icon: CloudDownloadOutlined, label: "Tài liệu Crawl" },
   { path: "/admin/documents-user", icon: ReadOutlined, label: "Tài liệu User" },
 ];
