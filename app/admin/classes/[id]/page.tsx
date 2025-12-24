@@ -2,14 +2,13 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { App, Spin } from "antd";
+import { App, Spin, Tabs } from "antd";
 import StudentDetailModal from "@/app/components/students/StudentDetailModal";
 import BannedStudentModal from "@/app/components/students/BannedStudentModal";
 import ClassHeader from "@/app/components/classes/ClassHeader";
 import ClassInfoCard from "@/app/components/classes/ClassInfoCard";
 import ClassStudentsTable from "@/app/components/classes/ClassStudentsTable";
 import UpdateClassModal from "@/app/components/classes/UpdateClassModal";
-import AddSingleStudentModal from "@/app/components/classes/AddSingleStudentModal";
 import BannedListModal from "@/app/components/classes/BannedListModal";
 import {
   getClassById,
@@ -21,11 +20,10 @@ import {
   getClassStudentsByClass,
   type ClassDetailResponse,
   type ClassStudentRecord,
-  type AddStudentToClassResponse,
 } from "@/lib/api/classes";
-import { type StudentResponse } from "@/lib/api/users";
 import type { StudentItem } from "@/interface/students";
 import { ensureMinLoadingTime, STUDENT_STATUS_MAP, CLASS_STATUS_MAP, formatStudentId } from "@/lib/utils/classUtils";
+import { FileTextOutlined, BellOutlined, FileOutlined, UserOutlined } from "@ant-design/icons";
 
 export default function ClassDetail() {
   const router = useRouter();
@@ -54,11 +52,10 @@ export default function ClassDetail() {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isBannedModalOpen, setIsBannedModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isAddSingleModalOpen, setIsAddSingleModalOpen] = useState(false);
-  const [isAddMultipleModalOpen, setIsAddMultipleModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [originalClassData, setOriginalClassData] = useState<ClassDetailResponse | null>(null);
   const [isBannedListModalOpen, setIsBannedListModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("students");
 
   // Map ClassStudentRecord to StudentItem
   const mapStudentRecordToItem = useCallback((record: ClassStudentRecord, className: string): StudentItem => {
@@ -86,7 +83,7 @@ export default function ClassDetail() {
   }, []);
 
   // Fetch class information (separate from students)
-  const fetchClassInfo = useCallback(async (): Promise<string> => {
+  const fetchClassInfo = useCallback(async (showLoading: boolean = true): Promise<string> => {
     const currentClassId = classIdRef.current;
     if (!currentClassId) return "";
 
@@ -107,15 +104,20 @@ export default function ClassDetail() {
       classNameRef.current = data.name; // Store className in ref
       return data.name; // Return className for use in fetchClassStudents
     } catch (error: any) {
-      message.error(error?.message || "Không thể tải thông tin lớp học");
-      setClassData(null);
+      if (showLoading) {
+        message.error(error?.message || "Không thể tải thông tin lớp học");
+      }
+      // Chỉ set null nếu showLoading = true để tránh mất dữ liệu khi refresh ngầm
+      if (showLoading) {
+        setClassData(null);
+      }
       throw error;
     }
   }, [message]);
 
   // Fetch class students (separate from class info)
   const fetchClassStudents = useCallback(
-    async (className?: string) => {
+    async (className?: string, showLoading: boolean = false) => {
       const currentClassId = classIdRef.current;
       if (!currentClassId) return;
 
@@ -135,15 +137,22 @@ export default function ClassDetail() {
           .filter((record: ClassStudentRecord) => record.status === "online")
           .map((record: ClassStudentRecord) => mapStudentRecordToItem(record, studentClassName));
 
-        // Ensure minimum loading time
-        await ensureMinLoadingTime(startTime);
+        // Chỉ đảm bảo minimum loading time nếu showLoading = true
+        if (showLoading) {
+          await ensureMinLoadingTime(startTime);
+        }
 
         setStudents(mappedStudents);
       } catch (error: any) {
-        // Ensure minimum loading time even on error
-        await ensureMinLoadingTime(startTime);
-        message.error(error?.message || "Không thể tải danh sách học sinh");
-        setStudents([]);
+        if (showLoading) {
+          // Ensure minimum loading time even on error
+          await ensureMinLoadingTime(startTime);
+          message.error(error?.message || "Không thể tải danh sách học sinh");
+        }
+        // Không set students = [] nếu đang refresh ngầm để tránh mất dữ liệu
+        if (showLoading) {
+          setStudents([]);
+        }
       }
     },
     [message, mapStudentRecordToItem]
@@ -157,9 +166,9 @@ export default function ClassDetail() {
     setLoading(true);
     try {
       // Fetch class info first and get className
-      const className = await fetchClassInfo();
+      const className = await fetchClassInfo(true);
       // Then fetch students with className
-      await fetchClassStudents(className);
+      await fetchClassStudents(className, true);
     } catch (error) {
       // Error already handled in fetchClassInfo
     } finally {
@@ -276,7 +285,6 @@ export default function ClassDetail() {
         cancelText: "Hủy",
         onOk: async () => {
           try {
-            console.log(student);
             await removeStudentFromClass({
               classId: currentClassId,
               userId: student.userId,
@@ -303,52 +311,16 @@ export default function ClassDetail() {
   );
 
   const handleAddSingle = useCallback(() => {
-    setIsAddSingleModalOpen(true);
-  }, []);
+    router.push(`/admin/classes/${classId}/single-create`);
+  }, [router, classId]);
 
   const handleAddMultiple = useCallback(() => {
-    setIsAddMultipleModalOpen(true);
-  }, []);
+    router.push(`/admin/classes/${classId}/create`);
+  }, [router, classId]);
 
   const handleViewBannedList = useCallback(() => {
     setIsBannedListModalOpen(true);
   }, []);
-
-  const handleAddStudentSuccess = useCallback(
-    (student: StudentResponse, classStudentResponse: AddStudentToClassResponse) => {
-      const currentClassName = classNameRef.current;
-
-      // Map API student to StudentItem format
-      const newStudent: StudentItem = {
-        key: String(student.user_id),
-        userId: student.user_id,
-        studentId: formatStudentId(student.user_id, student.username),
-        name: student.fullname,
-        email: student.email,
-        phone: student.phone || "",
-        class: currentClassName,
-        status: "Đang học" as const,
-        apiStatus: "online",
-        classStudentId: classStudentResponse.id,
-      };
-
-      // Cập nhật state trực tiếp
-      setStudents((prev) => [...prev, newStudent]);
-      setClassData((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          students: prev.students + 1,
-        };
-      });
-
-      message.success(`Đã thêm học sinh "${student.fullname}" vào lớp`);
-    },
-    [message]
-  );
-
-  // Get existing student IDs for filtering (memoized)
-  const existingStudentIds = useMemo(() => students.map((s) => s.key), [students]);
 
   // Memoize classInfo object to prevent unnecessary rerenders
   const classInfo = useMemo(() => {
@@ -379,10 +351,6 @@ export default function ClassDetail() {
   const handleCloseBannedModal = useCallback(() => {
     setIsBannedModalOpen(false);
     setSelectedStudent(null);
-  }, []);
-
-  const handleCloseAddSingleModal = useCallback(() => {
-    setIsAddSingleModalOpen(false);
   }, []);
 
   const handleCloseEditModal = useCallback(() => {
@@ -416,11 +384,9 @@ export default function ClassDetail() {
 
   const handleUnbanSuccess = useCallback(() => {
     // Refresh students list và class info để cập nhật số lượng học sinh
-    const currentClassName = classNameRef.current;
-    if (currentClassName) {
-      fetchClassStudents(currentClassName);
-      fetchClassInfo(); // Refresh để cập nhật student_count
-    }
+    fetchClassInfo(false).then((className) => {
+      fetchClassStudents(className, false);
+    });
   }, [fetchClassStudents, fetchClassInfo]);
 
   // Early returns after all hooks
@@ -459,16 +425,75 @@ export default function ClassDetail() {
       {/* Thông tin lớp học */}
       {classInfo && <ClassInfoCard classInfo={classInfo} />}
 
-      {/* Danh sách học sinh */}
-      <ClassStudentsTable
-        students={students}
-        onViewStudent={handleViewStudent}
-        onRemoveStudent={handleRemoveStudent}
-        onAddSingle={handleAddSingle}
-        onAddMultiple={handleAddMultiple}
-        onViewBanned={handleViewBanned}
-        onViewBannedList={handleViewBannedList}
-        onBanStudent={handleBanStudent}
+      {/* Tabs */}
+      <Tabs
+        activeKey={activeTab}
+        onChange={setActiveTab}
+        items={[
+          {
+            key: "students",
+            label: (
+              <span>
+                <UserOutlined className="mr-2" />
+                Danh sách học sinh
+              </span>
+            ),
+            children: (
+              <ClassStudentsTable
+                students={students}
+                onViewStudent={handleViewStudent}
+                onRemoveStudent={handleRemoveStudent}
+                onAddSingle={handleAddSingle}
+                onAddMultiple={handleAddMultiple}
+                onViewBanned={handleViewBanned}
+                onViewBannedList={handleViewBannedList}
+                onBanStudent={handleBanStudent}
+              />
+            ),
+          },
+          {
+            key: "exercises",
+            label: (
+              <span>
+                <FileTextOutlined className="mr-2" />
+                Bài tập
+              </span>
+            ),
+            children: (
+              <div className="bg-white rounded-lg p-6 border border-gray-200">
+                <p className="text-gray-500 text-center py-8">Danh sách bài tập sẽ được hiển thị ở đây</p>
+              </div>
+            ),
+          },
+          {
+            key: "notifications",
+            label: (
+              <span>
+                <BellOutlined className="mr-2" />
+                Thông báo
+              </span>
+            ),
+            children: (
+              <div className="bg-white rounded-lg p-6 border border-gray-200">
+                <p className="text-gray-500 text-center py-8">Danh sách thông báo sẽ được hiển thị ở đây</p>
+              </div>
+            ),
+          },
+          {
+            key: "documents",
+            label: (
+              <span>
+                <FileOutlined className="mr-2" />
+                Tài liệu
+              </span>
+            ),
+            children: (
+              <div className="bg-white rounded-lg p-6 border border-gray-200">
+                <p className="text-gray-500 text-center py-8">Danh sách tài liệu sẽ được hiển thị ở đây</p>
+              </div>
+            ),
+          },
+        ]}
       />
 
       {/* Modal chỉnh sửa lớp học */}
@@ -484,15 +509,6 @@ export default function ClassDetail() {
           onSuccess={handleUpdateClassSuccess}
         />
       )}
-
-      {/* Modal thêm học sinh single */}
-      <AddSingleStudentModal
-        open={isAddSingleModalOpen}
-        classId={classId}
-        existingStudentIds={existingStudentIds}
-        onCancel={handleCloseAddSingleModal}
-        onSuccess={handleAddStudentSuccess}
-      />
 
       {/* Modal xem chi tiết học sinh */}
       <StudentDetailModal open={isViewModalOpen} onCancel={handleCloseViewModal} student={selectedStudent} classInfo={modalClassInfo} />

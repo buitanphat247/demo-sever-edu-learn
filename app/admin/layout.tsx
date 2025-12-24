@@ -11,13 +11,9 @@ import AIChatPanel from "../components/layout/AIChatPanel";
 
 const pageTitles: Record<string, string> = {
   "/admin": "Dashboard",
-  "/admin/exercises": "Quản lý Bài tập",
-  "/admin/notification": "Quản lý Thông báo",
   "/admin/classes": "Quản lý Lớp học",
   "/admin/students": "Quản lý Học sinh",
-  "/admin/class-chat": "Chat / Hỏi đáp",
   "/admin/document-crawl": "Quản lý Tài liệu Crawl",
-  "/admin/documents-user": "Quản lý Tài liệu User",
 };
 
 function AdminHeader() {

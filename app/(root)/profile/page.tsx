@@ -119,7 +119,7 @@ export default function Profile() {
           {/* Action */}
           <div className="shrink-0 z-10 w-full md:w-auto">
              <Button 
-                size="large"
+                size="small"  
                 icon={<EditOutlined />}
                 className="w-full md:w-auto bg-slate-800 hover:bg-slate-700 border-slate-600 text-slate-200 hover:text-white h-12 px-8 rounded-xl font-semibold border shadow-lg transition-all"
                 onClick={() => message.info("Chức năng đang phát triển")}
@@ -174,7 +174,7 @@ export default function Profile() {
             </div>
             
             {/* Quick Stats or Additional Box could go here */}
-            <div className={`${cardClass} p-6 bg-gradient-to-br from-[#1e293b] to-[#1e293b] relative overflow-hidden group`}>
+            <div className={`${cardClass} p-6 bg-linear-to-br from-[#1e293b] to-[#1e293b] relative overflow-hidden group`}>
                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                     <IdcardOutlined style={{ fontSize: '35px', color: 'white' }} />
                 </div>

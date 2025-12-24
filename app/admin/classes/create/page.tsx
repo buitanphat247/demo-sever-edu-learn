@@ -28,8 +28,6 @@ export default function CreateClass() {
   };
 
   const handleSaveDraft = () => {
-    const values = form.getFieldsValue();
-    console.log("Draft exercise values", values);
     message.success("Đã lưu nháp bài tập (mock)");
   };
 

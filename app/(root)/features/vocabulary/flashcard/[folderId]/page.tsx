@@ -162,7 +162,7 @@ export default function VocabularyFlashcard() {
               )}
             </div>
 
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 ">
               <div>
                 <h1 className="text-3xl font-bold text-white mb-2">
                   Chế độ Flashcard <span className="text-slate-600 font-light">|</span> {folderName}
@@ -175,7 +175,7 @@ export default function VocabularyFlashcard() {
               <Button
                 icon={<IoArrowBackOutline />}
                 onClick={() => router.push(`/features/vocabulary/${folderId}`)}
-                size="large"
+                size="small"
                 className="bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 border-0 text-white font-medium shadow-lg shadow-blue-900/30 hover:shadow-blue-900/50 transition-all duration-300 hover:scale-105"
               >
                 Quay lại danh sách
@@ -237,7 +237,7 @@ export default function VocabularyFlashcard() {
                       <Button
                         type="primary"
                         icon={<SwapOutlined />}
-                        size="large"
+                        size="small"
                         onClick={handleFlip}
                         className="bg-blue-600 h-12 px-8 rounded-full shadow-lg shadow-blue-900/40 hover:scale-105 transition-transform border-none"
                       >
@@ -287,6 +287,7 @@ export default function VocabularyFlashcard() {
                       <Button
                         type="default"
                         icon={<SwapOutlined />}
+                        size="small"
                         onClick={handleFlip}
                         className="mt-8 self-center bg-transparent border-slate-600 text-slate-400 hover:text-blue-400 hover:border-blue-400"
                       >
@@ -304,7 +305,7 @@ export default function VocabularyFlashcard() {
                     <Button
                       icon={<LeftOutlined />}
                       onClick={handlePrev}
-                      size="large"
+                      size="small"
                       disabled={vocabularies.length <= 1}
                       className="h-12 bg-[#1e293b] border-slate-700 text-slate-300 hover:text-blue-400 hover:border-blue-400 hover:bg-slate-800"
                     >
@@ -321,7 +322,7 @@ export default function VocabularyFlashcard() {
                       icon={<RightOutlined />}
                       iconPosition="end"
                       onClick={handleNext}
-                      size="large"
+                      size="small"
                       disabled={vocabularies.length <= 1}
                       className="h-12 bg-[#1e293b] border-slate-700 text-slate-300 hover:text-blue-400 hover:border-blue-400 hover:bg-slate-800"
                     >
@@ -336,6 +337,7 @@ export default function VocabularyFlashcard() {
                   <div className="flex gap-3">
                     <Button
                       onClick={() => handleSetDifficulty("easy")}
+                      size="small"
                       className={`h-10 px-6 bg-[#1e293b] border-slate-700 text-emerald-500 hover:bg-emerald-500/10 hover:border-emerald-500/50 ${
                         difficulties[currentVocab!.sourceWordId] === "easy" ? "bg-emerald-500/20 border-emerald-500" : ""
                       }`}
@@ -344,6 +346,7 @@ export default function VocabularyFlashcard() {
                     </Button>
                     <Button
                       onClick={() => handleSetDifficulty("medium")}
+                      size="small"
                       className={`h-10 px-6 bg-[#1e293b] border-slate-700 text-blue-500 hover:bg-blue-500/10 hover:border-blue-500/50 ${
                         difficulties[currentVocab!.sourceWordId] === "medium" ? "bg-blue-500/20 border-blue-500" : ""
                       }`}
@@ -352,7 +355,8 @@ export default function VocabularyFlashcard() {
                     </Button>
                     <Button
                       onClick={() => handleSetDifficulty("hard")}
-                      className={`h-10 px-6 bg-[#1e293b] border-slate-700 text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/50 ${
+                      size="small"
+                       className={`h-10 px-6 bg-[#1e293b] border-slate-700 text-rose-500 hover:bg-rose-500/10 hover:border-rose-500/50 ${
                         difficulties[currentVocab!.sourceWordId] === "hard" ? "bg-rose-500/20 border-rose-500" : ""
                       }`}
                     >

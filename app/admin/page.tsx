@@ -1,35 +1,15 @@
 "use client";
 
 import {
-  FileTextOutlined,
   AppstoreOutlined,
-  ReadOutlined,
-  BellOutlined,
   UserOutlined,
   ArrowRightOutlined,
+  CloudDownloadOutlined,
 } from "@ant-design/icons";
 import { Card } from "antd";
 import { useRouter } from "next/navigation";
 
 const dashboardItems = [
-  {
-    icon: FileTextOutlined,
-    title: "Bài tập",
-    description: "Quản lý và tạo bài tập cho học sinh",
-    gradient: "from-blue-500 to-blue-600",
-    iconBg: "bg-blue-100",
-    iconColor: "text-blue-600",
-    path: "/admin/exercises",
-  },
-  {
-    icon: BellOutlined,
-    title: "Quản lý thông báo",
-    description: "Gửi thông báo cho lớp học hoặc học sinh",
-    gradient: "from-purple-500 to-purple-600",
-    iconBg: "bg-purple-100",
-    iconColor: "text-purple-600",
-    path: "/admin/notification",
-  },
   {
     icon: AppstoreOutlined,
     title: "Quản lý lớp",
@@ -49,25 +29,18 @@ const dashboardItems = [
     path: "/admin/students",
   },
   {
-    icon: ReadOutlined,
-    title: "Kho nội dung",
-    description: "Quản lý tài liệu và nội dung học tập",
+    icon: CloudDownloadOutlined,
+    title: "Tài liệu Crawl",
+    description: "Quản lý tài liệu được crawl từ nguồn ngoài",
     gradient: "from-indigo-500 to-indigo-600",
     iconBg: "bg-indigo-100",
     iconColor: "text-indigo-600",
-    path: "/admin/content",
+    path: "/admin/document-crawl",
   },
 ];
 
 // Mock statistics data - có thể thay thế bằng dữ liệu thực từ API
 const stats = [
-  {
-    label: "Tổng bài tập",
-    value: "24",
-    icon: FileTextOutlined,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50",
-  },
   {
     label: "Lớp học",
     value: "12",
@@ -81,13 +54,6 @@ const stats = [
     icon: UserOutlined,
     color: "text-cyan-600",
     bgColor: "bg-cyan-50",
-  },
-  {
-    label: "Tin tức",
-    value: "15",
-    icon: BellOutlined,
-    color: "text-purple-600",
-    bgColor: "bg-purple-50",
   },
 ];
 
@@ -111,7 +77,7 @@ function WelcomeBanner() {
 
 function StatisticsCards({ stats }: { stats: any[] }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
       {stats.map((stat, index) => {
         const Icon = stat.icon;
         return (

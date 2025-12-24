@@ -19,7 +19,6 @@ export default function CreateStudent() {
     try {
       // Mock API
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Create student values", values);
       message.success("Thêm học sinh mới thành công!");
       router.push("/admin/students");
     } catch (error) {
@@ -30,8 +29,6 @@ export default function CreateStudent() {
   };
 
   const handleSaveDraft = () => {
-    const values = form.getFieldsValue();
-    console.log("Draft student values", values);
     message.success("Đã lưu nháp thông tin học sinh (mock)");
   };
 

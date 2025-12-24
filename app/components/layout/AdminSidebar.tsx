@@ -4,22 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   HomeOutlined,
-  FileTextOutlined,
   AppstoreOutlined,
   SettingOutlined,
-  CloudDownloadOutlined,
-  BellOutlined,
   UserOutlined,
-  ReadOutlined,
+  CloudDownloadOutlined,
 } from "@ant-design/icons";
 const menuItems = [
   { path: "/admin", icon: HomeOutlined, label: "Trang chủ" },
-  { path: "/admin/exercises", icon: FileTextOutlined, label: "Quản lý Bài tập" },
-  { path: "/admin/notification", icon: BellOutlined, label: "Quản lý Thông báo" },
   { path: "/admin/classes", icon: AppstoreOutlined, label: "Quản lý Lớp học" },
   { path: "/admin/students", icon: UserOutlined, label: "Quản lý Học sinh" },
   { path: "/admin/document-crawl", icon: CloudDownloadOutlined, label: "Tài liệu Crawl" },
-  { path: "/admin/documents-user", icon: ReadOutlined, label: "Tài liệu User" },
 ];
 
 export default function AdminSidebar() {

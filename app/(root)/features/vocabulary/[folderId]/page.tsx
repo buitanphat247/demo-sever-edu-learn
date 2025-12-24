@@ -7,6 +7,8 @@ import { App, Spin, Button, ConfigProvider, theme } from "antd";
 import { SoundOutlined, FileTextOutlined, CheckCircleOutlined, EditOutlined, BookOutlined } from "@ant-design/icons";
 import { getVocabulariesByFolder, type VocabularyResponse } from "@/lib/api/vocabulary";
 import Image from "next/image";
+import { IoArrowBackOutline } from "react-icons/io5";
+import { GoBook } from "react-icons/go";
 
 const HeaderSkeleton = () => (
   <div className="mb-12 animate-pulse">
@@ -114,18 +116,18 @@ export default function VocabularyDetail() {
 
   const fetchVocabularies = async () => {
     if (!folderId) return;
-    
+
     const startTime = Date.now();
     setLoading(true);
     try {
       const data = await getVocabulariesByFolder(folderId);
-      
+
       // Ensure minimum loading time
       const elapsedTime = Date.now() - startTime;
       const minLoadingTime = 250;
       const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
       await new Promise((resolve) => setTimeout(resolve, remainingTime));
-      
+
       setVocabularies(data);
       if (data.length > 0) {
         setFolderName(data[0].folder.folderName);
@@ -136,7 +138,7 @@ export default function VocabularyDetail() {
       const minLoadingTime = 250;
       const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
       await new Promise((resolve) => setTimeout(resolve, remainingTime));
-      
+
       console.error("Error fetching vocabularies:", error);
       message.error(error?.message || "Không thể tải danh sách từ vựng");
       setVocabularies([]);
@@ -219,14 +221,13 @@ export default function VocabularyDetail() {
       theme={{
         algorithm: theme.darkAlgorithm,
         token: {
-          colorPrimary: '#3b82f6', // blue-600
+          colorPrimary: "#3b82f6", // blue-600
           borderRadius: 8,
         },
       }}
     >
       <main className="min-h-screen bg-[#0f172a] py-8 md:py-12 font-sans text-slate-200">
         <div className="container mx-auto px-4">
-          
           {/* Header */}
           <div className="mb-12">
             {loading ? (
@@ -234,9 +235,13 @@ export default function VocabularyDetail() {
             ) : (
               <>
                 <nav className="mb-8 bg-[#1e293b] border border-slate-700/50 rounded-xl px-6 py-4 shadow-sm text-sm font-medium flex items-center flex-wrap gap-2">
-                  <Link href="/" className="text-blue-400 hover:text-blue-300 transition-colors">Trang chủ</Link>
+                  <Link href="/" className="text-blue-400 hover:text-blue-300 transition-colors">
+                    Trang chủ
+                  </Link>
                   <span className="text-slate-600">/</span>
-                  <Link href="/features/vocabulary" className="text-blue-400 hover:text-blue-300 transition-colors">Học từ vựng</Link>
+                  <Link href="/features/vocabulary" className="text-blue-400 hover:text-blue-300 transition-colors">
+                    Học từ vựng
+                  </Link>
                   {folderName && (
                     <>
                       <span className="text-slate-600">/</span>
@@ -245,30 +250,25 @@ export default function VocabularyDetail() {
                   )}
                 </nav>
 
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 ">
                   <div>
-                    <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">
-                      {folderName || "Từ vựng"}
-                    </h1>
+                    <h1 className="text-3xl md:text-5xl font-extrabold text-white mb-4 tracking-tight">{folderName || "Từ vựng"}</h1>
                     <div className="flex items-center gap-3">
                       <div className="h-1.5 w-16 bg-blue-600 rounded-full"></div>
-                      <p className="text-slate-400 font-medium">
-                        {vocabularies?.length > 0 ? `${vocabularies.length} từ vựng` : "Đang tải..."}
-                      </p>
+                      <p className="text-slate-400 font-medium">{vocabularies?.length > 0 ? `${vocabularies.length} từ vựng` : "Đang tải..."}</p>
                     </div>
                   </div>
-                  
+
                   {vocabularies.length > 0 && (
                     <div className="flex gap-3">
-                       <Button 
-                        type="primary" 
-                        size="large"
-                        shape="round"
-                        className="bg-blue-600 hover:bg-blue-500 h-11 px-8 shadow-lg shadow-blue-900/40 font-semibold border-none"
+                      <Button
+                        icon={<GoBook />}
+                        size="small"
+                        className="bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 border-0 text-white font-medium shadow-lg shadow-blue-900/30 hover:shadow-blue-900/50 transition-all duration-300 hover:scale-105"
                         onClick={() => router.push(`/features/vocabulary/flashcard/${folderId}`)}
-                       >
-                         Học ngay
-                       </Button>
+                      >
+                        Học ngay
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -279,46 +279,53 @@ export default function VocabularyDetail() {
           {/* Practice Modes */}
           {loading ? (
             <PracticeModesSkeleton />
-          ) : vocabularies.length > 0 && (
-            <div className="mb-16">
-              <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-                <CheckCircleOutlined className="text-blue-500" />
-                <span>Chế độ luyện tập</span>
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-                {practiceModes.map((mode, index) => {
-                  const IconComponent = mode.icon;
-                  const handleClick = () => {
-                    if (mode.title === "Flashcard") {
-                      router.push(`/features/vocabulary/flashcard/${folderId}`);
-                    } else {
-                      message.info("Tính năng này đang được phát triển");
-                    }
-                  };
+          ) : (
+            vocabularies.length > 0 && (
+              <div className="mb-16">
+                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                  <CheckCircleOutlined className="text-blue-500" />
+                  <span>Chế độ luyện tập</span>
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                  {practiceModes.map((mode, index) => {
+                    const IconComponent = mode.icon;
+                    const handleClick = () => {
+                      if (mode.title === "Flashcard") {
+                        router.push(`/features/vocabulary/flashcard/${folderId}`);
+                      } else {
+                        message.info("Tính năng này đang được phát triển");
+                      }
+                    };
 
-                  const colors: Record<string, string> = {
-                    green: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 group-hover:bg-emerald-500/20 group-hover:border-emerald-500/40",
-                    blue: "bg-blue-500/10 text-blue-400 border-blue-500/20 group-hover:bg-blue-500/20 group-hover:border-blue-500/40",
-                    purple: "bg-purple-500/10 text-purple-400 border-purple-500/20 group-hover:bg-purple-500/20 group-hover:border-purple-500/40",
-                    orange: "bg-orange-500/10 text-orange-400 border-orange-500/20 group-hover:bg-orange-500/20 group-hover:border-orange-500/40",
-                  };
-                  
-                  return (
-                    <div
-                      key={index}
-                      onClick={handleClick}
-                      className="group bg-[#1e293b] rounded-2xl p-5 border border-slate-700/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
-                    >
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors border ${colors[mode.color].split(' group-hover')[0]}`}>
-                        <IconComponent className="text-xl" />
+                    const colors: Record<string, string> = {
+                      green:
+                        "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 group-hover:bg-emerald-500/20 group-hover:border-emerald-500/40",
+                      blue: "bg-blue-500/10 text-blue-400 border-blue-500/20 group-hover:bg-blue-500/20 group-hover:border-blue-500/40",
+                      purple: "bg-purple-500/10 text-purple-400 border-purple-500/20 group-hover:bg-purple-500/20 group-hover:border-purple-500/40",
+                      orange: "bg-orange-500/10 text-orange-400 border-orange-500/20 group-hover:bg-orange-500/20 group-hover:border-orange-500/40",
+                    };
+
+                    return (
+                      <div
+                        key={index}
+                        onClick={handleClick}
+                        className="group bg-[#1e293b] rounded-2xl p-5 border border-slate-700/50 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
+                      >
+                        <div
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors border ${
+                            colors[mode.color].split(" group-hover")[0]
+                          }`}
+                        >
+                          <IconComponent className="text-xl" />
+                        </div>
+                        <h3 className="text-base font-bold text-slate-200 mb-1 group-hover:text-white transition-colors">{mode.title}</h3>
+                        <p className="text-xs text-slate-400 line-clamp-2">{mode.description}</p>
                       </div>
-                      <h3 className="text-base font-bold text-slate-200 mb-1 group-hover:text-white transition-colors">{mode.title}</h3>
-                      <p className="text-xs text-slate-400 line-clamp-2">{mode.description}</p>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )
           )}
 
           {/* Vocabulary List */}
@@ -353,14 +360,17 @@ export default function VocabularyDetail() {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                           ) : (
-                             <div className="w-full h-full flex items-center justify-center text-slate-600 font-bold text-xl">
-                                {vocab.content.charAt(0)}
-                             </div>
+                            <div className="w-full h-full flex items-center justify-center text-slate-600 font-bold text-xl">
+                              {vocab.content.charAt(0)}
+                            </div>
                           )}
                         </div>
                         <div className="flex-1 min-w-0 pt-1">
                           <div className="flex items-center justify-between mb-1">
-                            <h3 className="text-lg font-bold text-slate-200 truncate group-hover:text-blue-400 transition-colors" title={vocab.content}>
+                            <h3
+                              className="text-lg font-bold text-slate-200 truncate group-hover:text-blue-400 transition-colors"
+                              title={vocab.content}
+                            >
                               {vocab.content}
                             </h3>
                             {primaryAudio && (
@@ -373,7 +383,7 @@ export default function VocabularyDetail() {
                               />
                             )}
                           </div>
-                          
+
                           <div className="flex items-center gap-2 mb-2">
                             {vocab.pos && (
                               <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 uppercase tracking-wide border border-slate-700">
@@ -383,9 +393,7 @@ export default function VocabularyDetail() {
                             <span className="text-sm font-mono text-slate-500">{vocab.pronunciation}</span>
                           </div>
 
-                          <p className="text-blue-400 font-bold">
-                            {vocab.translation}
-                          </p>
+                          <p className="text-blue-400 font-bold">{vocab.translation}</p>
                         </div>
                       </div>
 
@@ -395,14 +403,8 @@ export default function VocabularyDetail() {
                       {/* Example Section */}
                       {example && (
                         <div className="mb-4 bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
-                          <div
-                            className="text-sm text-slate-300 italic mb-1"
-                            dangerouslySetInnerHTML={{ __html: example.content }}
-                          />
-                          <div
-                            className="text-xs text-slate-500"
-                            dangerouslySetInnerHTML={{ __html: example.translation }}
-                          />
+                          <div className="text-sm text-slate-300 italic mb-1" dangerouslySetInnerHTML={{ __html: example.content }} />
+                          <div className="text-xs text-slate-500" dangerouslySetInnerHTML={{ __html: example.translation }} />
                         </div>
                       )}
 
@@ -419,11 +421,11 @@ export default function VocabularyDetail() {
                               </span>
                             ))}
                             {variations.length > 3 && (
-                               <span className="px-2 py-1 text-slate-500 text-[10px] font-medium">+{variations.length - 3}</span>
+                              <span className="px-2 py-1 text-slate-500 text-[10px] font-medium">+{variations.length - 3}</span>
                             )}
                           </div>
                         )}
-                        
+
                         {vocab.family && vocab.family.length > 0 && (
                           <div>
                             <p className="text-[10px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Họ từ</p>
@@ -439,7 +441,6 @@ export default function VocabularyDetail() {
                           </div>
                         )}
                       </div>
-
                     </div>
                   );
                 })}
@@ -447,9 +448,9 @@ export default function VocabularyDetail() {
             </div>
           ) : (
             <div className="text-center py-20 bg-[#1e293b] rounded-3xl border border-dashed border-slate-700 shadow-sm">
-                <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-600">
-                    <BookOutlined className="text-2xl" />
-                </div>
+              <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-600">
+                <BookOutlined className="text-2xl" />
+              </div>
               <p className="text-slate-400 font-medium">Chưa có từ vựng nào trong bộ này</p>
             </div>
           )}
