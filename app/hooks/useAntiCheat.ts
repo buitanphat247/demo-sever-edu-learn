@@ -199,7 +199,13 @@ export const useAntiCheat = ({ onViolation, enable = true, initialViolationsCoun
 
   // 2. Incident Monitor (Shared for Fullscreen & Focus Loss)
   const lastIncidentTimeRef = useRef<number>(0);
-  const wasFullScreenRef = useRef<boolean>(!!document.fullscreenElement);
+  const wasFullScreenRef = useRef<boolean>(false);
+
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      wasFullScreenRef.current = !!document.fullscreenElement;
+    }
+  }, []);
 
   const handleOutIncident = useCallback((type: "exit_fullscreen" | "focus_loss", customMsg?: string) => {
     // 0. If overlay is ALREADY showing, do not count further incidents

@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const orderDesc = searchParams.get("order_desc");
 
     // Flask backend URL
-    const flaskApiUrl = process.env.NEXT_PUBLIC_FLASK_API_URL || "http://127.0.0.1:4018";
+    const flaskApiUrl = process.env.NEXT_PUBLIC_FLASK_API_URL || "http://localhost:5000";
 
     // Build query params
     const queryParams = new URLSearchParams();

@@ -20,7 +20,7 @@ export async function GET(
     }
 
     // Flask backend URL
-    const flaskApiUrl = process.env.NEXT_PUBLIC_FLASK_API_URL || "http://127.0.0.1:4018";
+    const flaskApiUrl = process.env.NEXT_PUBLIC_FLASK_API_URL || "http://localhost:5000";
     
     const url = `${flaskApiUrl}/writing-chat-bot/history/${historyId}`;
 

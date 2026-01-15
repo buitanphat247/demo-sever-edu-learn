@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // AI Python Tool URL
-const AI_API_URL = "http://localhost:5000/question";
+const AI_API_URL = (process.env.NEXT_PUBLIC_FLASK_API_URL || "http://localhost:5000") + "/ai-exam";
 
 export interface RagTestOverview {
   id: string;

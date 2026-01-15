@@ -269,6 +269,27 @@ export default function ExamDetailPage() {
         },
       },
       {
+        title: "Lượt làm",
+        dataIndex: "attempt_count",
+        key: "attempt_count",
+        render: (count: number) => {
+          const maxAttempts = test?.max_attempts || 0;
+          const displayMax = maxAttempts > 0 ? maxAttempts : "∞";
+          const isAtLimit = maxAttempts > 0 && count >= maxAttempts;
+          
+          return (
+            <Space direction="vertical" size={0}>
+              <Text strong className={isAtLimit ? "text-red-500" : "text-gray-700"}>
+                {count} / {displayMax}
+              </Text>
+              <Text type="secondary" style={{ fontSize: "10px" }}>
+                lượt đã dùng
+              </Text>
+            </Space>
+          );
+        },
+      },
+      {
         title: "Số câu",
         key: "progress",
         render: (_: any, record: StudentAttempt) => (

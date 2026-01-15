@@ -82,7 +82,8 @@ export default function ExamSessionPage() {
   const connectSocket = useCallback(
     (aid: string) => {
       if (socketRef.current) socketRef.current.disconnect();
-      const socket = (io as any).default ? (io as any).default("http://localhost:5000") : io("http://localhost:5000");
+      const flaskBaseUrl = process.env.NEXT_PUBLIC_FLASK_API_URL || "http://localhost:5000";
+      const socket = (io as any).default ? (io as any).default(flaskBaseUrl) : io(flaskBaseUrl);
       socketRef.current = socket;
       socket.emit("join_attempt", { attemptId: aid });
 

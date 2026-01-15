@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // AI Python Tool URL
-const AI_API_URL = "http://localhost:5000";
+const AI_API_URL = process.env.NEXT_PUBLIC_FLASK_API_URL || "http://localhost:5000";
 
 export interface AttemptLog {
   attempt_id: string;
@@ -77,6 +77,7 @@ export interface StudentAttempt {
   started_at: string;
   submitted_at: string | null;
   answered_count: number;
+  attempt_count: number; // Added
   security: {
     reload: number;
     tab_hidden: number;
