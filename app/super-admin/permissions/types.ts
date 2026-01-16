@@ -13,5 +13,6 @@ export interface Role {
   color: string;
   icon: ReactNode;
   permissions: string[];
+  apiPermissionIds?: number[]; // List of API permission IDs the role can access
   status: "active" | "inactive";
 }

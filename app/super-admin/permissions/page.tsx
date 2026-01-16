@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { Typography, Button, Space, Breadcrumb, Modal, Form, Input, Switch, Divider, App } from "antd";
+import { useState, useCallback, useEffect } from "react";
+import { Typography, Button, Space, Breadcrumb, Modal, Form, Input, Switch, Divider, App, Spin } from "antd";
 import { PlusOutlined, KeyOutlined, RobotOutlined, UserOutlined, TeamOutlined, SafetyOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 
 // Sub-components
-import RoleSidebar from "./components/RoleSidebar";
 import PermissionMatrix from "./components/PermissionMatrix";
 import { Role } from "./types";
+import { getRoles } from "@/lib/api/permissions";
 
 const { Title, Text } = Typography;
 
@@ -22,56 +22,75 @@ const ACTIONS = [
   { key: "approve", label: "Duyệt", color: "purple" },
 ];
 
-const mockRoles: Role[] = [
-  { id: "1", name: "Super Admin", color: "red", icon: <RobotOutlined />, permissions: ["all"], status: "active" },
-  {
-    id: "2",
-    name: "Admin",
-    color: "blue",
-    icon: <SafetyOutlined />,
-    permissions: ["dash_view", "user_view", "user_edit", "class_view"],
-    status: "active",
-  },
-  {
-    id: "3",
-    name: "Giáo viên",
-    color: "green",
-    icon: <TeamOutlined />,
-    permissions: ["class_view", "class_edit", "exam_view", "exam_create"],
-    status: "active",
-  },
-  { id: "4", name: "Học sinh", color: "gold", icon: <UserOutlined />, permissions: ["dash_view", "class_view"], status: "active" },
-];
+const ROLE_ICONS: Record<string, any> = {
+  admin: <RobotOutlined />,
+  teacher: <TeamOutlined />,
+  student: <UserOutlined />,
+};
+
+const ROLE_COLORS: Record<string, string> = {
+  admin: "#ef4444",
+  teacher: "#22c55e",
+  student: "#6366f1",
+  guest: "#64748b",
+};
 
 export default function PermissionPage() {
   const router = useRouter();
   const { message } = App.useApp();
-  const [searchRole, setSearchRole] = useState("");
-  const [selectedRole, setSelectedRole] = useState<Role | null>(mockRoles[0]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        setLoading(true);
+        const response = await getRoles();
+        const data = response.data || response; // Handle different response formats
+
+        const mappedRoles: Role[] = data.map((r: any) => ({
+          id: r.role_id.toString(),
+          name: r.role_name.charAt(0).toUpperCase() + r.role_name.slice(1),
+          color: ROLE_COLORS[r.role_name.toLowerCase()] || "#64748b",
+          icon: ROLE_ICONS[r.role_name.toLowerCase()] || <UserOutlined />,
+          status: "active",
+          permissions: [], // For legacy UI if needed
+          apiPermissionIds: r.rolePermissions?.map((rp: any) => rp.permission_id) || [],
+        }));
+
+        setRoles(mappedRoles);
+        if (mappedRoles.length > 0) setSelectedRole(mappedRoles[0]);
+      } catch (error) {
+        console.error("Error fetching roles:", error);
+        message.error("Không thể tải danh sách vai trò");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRoles();
+  }, [message]);
 
   const handleSaveMatrix = useCallback(() => {
     message.success("Đã cập nhật bảng phân quyền thành công!");
   }, [message]);
 
+  if (loading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Spin size="large" tip="Đang tải dữ liệu..." />
+      </div>
+    );
+  }
+
   return (
     <div className="animate-in fade-in duration-500">
       <div className="grid grid-cols-12 gap-6">
-        {/* Sidebar Roles Panel - SEPARATED */}
-        <div className="col-span-12 lg:col-span-4">
-          <RoleSidebar
-            roles={mockRoles}
-            selectedRole={selectedRole}
-            onSelectRole={setSelectedRole}
-            searchRole={searchRole}
-            onSearchChange={setSearchRole}
-            onAddRole={() => setIsRoleModalOpen(true)}
-          />
-        </div>
-
-        {/* Permissions Matrix Area - SEPARATED */}
-        <div className="col-span-12 lg:col-span-8">
-          <PermissionMatrix selectedRole={selectedRole} modules={MODULES} actions={ACTIONS} onSave={handleSaveMatrix} />
+        {/* Permissions Matrix Area - Full Width */}
+        <div className="col-span-12">
+          <PermissionMatrix selectedRole={selectedRole} roles={roles} modules={MODULES} actions={ACTIONS} onSave={handleSaveMatrix} />
         </div>
       </div>
 
