@@ -119,9 +119,6 @@ export default function StudentDetailModal({ open, onCancel, student, classInfo 
               <Tag color="blue" className="mb-4">
                 {displayData.studentId}
               </Tag>
-              <Tag color={getStatusColor(getDisplayStatus(displayData.status, displayData.apiStatus))}>
-                {getDisplayStatus(displayData.status, displayData.apiStatus)}
-              </Tag>
             </div>
 
             {/* Thông tin chi tiết */}
@@ -180,18 +177,6 @@ export default function StudentDetailModal({ open, onCancel, student, classInfo 
                   {`${classInfo.name} (${classInfo.code})`}
                 </Descriptions.Item>
               )}
-              <Descriptions.Item
-                label={
-                  <span className="flex items-center gap-2">
-                    <CalendarOutlined />
-                    Trạng thái
-                  </span>
-                }
-              >
-                <Tag color={getStatusColor(getDisplayStatus(displayData.status, displayData.apiStatus))}>
-                  {getDisplayStatus(displayData.status, displayData.apiStatus)}
-                </Tag>
-              </Descriptions.Item>
             </Descriptions>
           </div>
         )}

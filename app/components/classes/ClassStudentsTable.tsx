@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { Button, Space, Tag, Table } from "antd";
-import { DeleteOutlined, EyeOutlined, UserAddOutlined, UsergroupAddOutlined, StopOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EyeOutlined, StopOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import CustomCard from "@/app/components/common/CustomCard";
 import type { StudentItem } from "@/interface/students";
@@ -11,14 +11,12 @@ interface ClassStudentsTableProps {
   students: StudentItem[];
   onViewStudent: (student: StudentItem) => void;
   onRemoveStudent: (student: StudentItem) => void;
-  onAddSingle?: () => void;
-  onAddMultiple?: () => void;
   onViewBanned?: (student: StudentItem) => void;
   onViewBannedList?: () => void;
   onBanStudent?: (student: StudentItem) => void;
 }
 
-function ClassStudentsTable({ students, onViewStudent, onRemoveStudent, onAddSingle, onAddMultiple, onViewBanned, onViewBannedList, onBanStudent }: ClassStudentsTableProps) {
+function ClassStudentsTable({ students, onViewStudent, onRemoveStudent, onViewBanned, onViewBannedList, onBanStudent }: ClassStudentsTableProps) {
 
   const studentColumns: ColumnsType<StudentItem> = [
     {
@@ -101,24 +99,6 @@ function ClassStudentsTable({ students, onViewStudent, onRemoveStudent, onAddSin
       bodyClassName="py-6"
       extra={
         <Space>
-          <Button
-            type="default"
-            icon={<UserAddOutlined />}
-            size="middle"
-            className="bg-white border-gray-300 hover:bg-gray-50 shadow-sm"
-            onClick={onAddSingle}
-          >
-            Thêm single
-          </Button>
-          <Button
-            type="default"
-            icon={<UsergroupAddOutlined />}
-            size="middle"
-            className="bg-white border-gray-300 hover:bg-gray-50 shadow-sm"
-            onClick={onAddMultiple}
-          >
-            Thêm multiple
-          </Button>
           {onViewBannedList && (
             <Button
               type="default"

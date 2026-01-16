@@ -30,6 +30,7 @@ export interface Exam {
   subjectColor: string;
   isAi?: boolean;
   isLocked?: boolean;
+  isPublished?: boolean;
 }
 
 export interface Exercise {

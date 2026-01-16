@@ -7,6 +7,7 @@ import ClassesTable from "@/app/components/classes/ClassesTable";
 import CreateClassModal from "@/app/components/classes/CreateClassModal";
 import UpdateClassModal from "@/app/components/classes/UpdateClassModal";
 import { getClassesByUser, deleteClass, getClassById, type ClassResponse, type ClassDetailResponse } from "@/lib/api/classes";
+import { deleteRagTestsByClass } from "@/lib/api/rag-exams";
 import type { ClassItem } from "@/interface/classes";
 import { ensureMinLoadingTime, CLASS_STATUS_MAP } from "@/lib/utils/classUtils";
 import { getUserIdFromCookie } from "@/lib/utils/cookies";
@@ -54,7 +55,7 @@ export default function AdminClasses() {
     const startTime = Date.now();
     try {
       setLoading(true);
-      
+
       // Get current user ID from cookie
       const userId = getUserIdFromCookie();
       if (!userId) {
@@ -78,8 +79,6 @@ export default function AdminClasses() {
       setClasses(mappedClasses);
       setPagination((prev) => ({ ...prev, total: result.total }));
     } catch (error: any) {
-      // Ensure minimum loading time even on error
-      await ensureMinLoadingTime(startTime);
       message.error(error?.message || "Không thể tải danh sách lớp học");
     } finally {
       setLoading(false);
@@ -118,6 +117,10 @@ export default function AdminClasses() {
       cancelText: "Hủy",
       onOk: async () => {
         try {
+          // 1. Xóa toàn bộ đề thi AI liên quan (Sequential cleanup)
+          await deleteRagTestsByClass(classItem.key);
+
+          // 2. Xóa lớp học
           await deleteClass(classItem.key);
           message.success(`Đã xóa lớp học "${classItem.name}" thành công`);
           // Cập nhật UI trực tiếp
@@ -132,11 +135,7 @@ export default function AdminClasses() {
 
   return (
     <div className="space-y-3">
-      <ClassesHeader 
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-        onAddClick={() => setIsCreateModalOpen(true)}
-      />
+      <ClassesHeader searchValue={searchQuery} onSearchChange={setSearchQuery} onAddClick={() => setIsCreateModalOpen(true)} />
 
       <CreateClassModal
         open={isCreateModalOpen}
@@ -163,20 +162,14 @@ export default function AdminClasses() {
           onSuccess={(updatedName) => {
             setIsEditModalOpen(false);
             // Cập nhật state trực tiếp
-            setClasses((prev) =>
-              prev.map((c) =>
-                c.key === selectedClass.key
-                  ? { ...c, name: updatedName }
-                  : c
-              )
-            );
+            setClasses((prev) => prev.map((c) => (c.key === selectedClass.key ? { ...c, name: updatedName } : c)));
             setSelectedClass(null);
             setOriginalClassData(null);
           }}
         />
       )}
 
-      <ClassesTable 
+      <ClassesTable
         data={classes}
         loading={loading}
         pagination={{
@@ -191,4 +184,3 @@ export default function AdminClasses() {
     </div>
   );
 }
-

@@ -3,12 +3,13 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { App, Spin, Button, Tabs, Table, Tag } from "antd";
-import { ArrowLeftOutlined, BellOutlined, FileTextOutlined, CalendarOutlined, UserOutlined } from "@ant-design/icons";
+import { ArrowLeftOutlined, BellOutlined, FileTextOutlined, CalendarOutlined, UserOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 import ClassInfoCard from "@/app/components/classes/ClassInfoCard";
 import ClassExercisesTab from "@/app/components/classes/ClassExercisesTab";
 import ClassNotificationsTab from "@/app/components/classes/ClassNotificationsTab";
 import ClassExamsTab from "@/app/components/classes/ClassExamsTab";
 import CustomCard from "@/app/components/common/CustomCard";
+import DataLoadingSplash from "@/app/components/common/DataLoadingSplash";
 import { getClassById, getClassStudentsByClass, type ClassStudentRecord } from "@/lib/api/classes";
 import { CLASS_STATUS_MAP, formatStudentId } from "@/lib/utils/classUtils";
 import { getUserIdFromCookie } from "@/lib/utils/cookies";
@@ -46,6 +47,7 @@ export default function UserClassDetail() {
     created_at?: string;
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showSplash, setShowSplash] = useState(true);
   const [activeTab, setActiveTab] = useState("students");
   const [isTabLoading, setIsTabLoading] = useState(false);
   const [students, setStudents] = useState<StudentItem[]>([]);
@@ -116,9 +118,6 @@ export default function UserClassDetail() {
       classNameRef.current = data.name; // Store className in ref
       return data.name; // Return className for use in fetchClassStudents
     } catch (error: any) {
-      if (showLoading) {
-        messageRef.current.error(error?.message || "Không thể tải thông tin lớp học");
-      }
       // Chỉ set null nếu showLoading = true để tránh mất dữ liệu khi refresh ngầm
       if (showLoading) {
         setClassData(null);
@@ -174,9 +173,7 @@ export default function UserClassDetail() {
 
         setStudents(mappedStudents);
       } catch (error: any) {
-        if (showLoading) {
-          messageRef.current.error(error?.message || "Không thể tải danh sách học sinh");
-        }
+        // Không set students = [] nếu đang refresh ngầm để tránh mất dữ liệu
         // Không set students = [] nếu đang refresh ngầm để tránh mất dữ liệu
         if (showLoading) {
           setStudents([]);
@@ -194,8 +191,13 @@ export default function UserClassDetail() {
     if (!currentClassId) return;
 
     setLoading(true);
+    setShowSplash(true); // Show splash when starting to load
+
+    const startTime = Date.now();
+    const minSplashDuration = 1000; // Minimum 1 second
+
     try {
-      // Fetch class info first and get className
+      // Fetch class info first and get className (data loading in background)
       const className = await fetchClassInfo(true);
       // Then fetch students with className
       await fetchClassStudents(className, true);
@@ -203,6 +205,15 @@ export default function UserClassDetail() {
       // Error already handled in fetchClassInfo
     } finally {
       setLoading(false);
+
+      // Calculate remaining time to show splash (minimum 2 seconds)
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 2000 - elapsed);
+
+      // Hide splash after minimum display time
+      setTimeout(() => {
+        setShowSplash(false);
+      }, remaining);
     }
   }, [fetchClassInfo, fetchClassStudents]);
 
@@ -309,23 +320,57 @@ export default function UserClassDetail() {
     []
   );
 
-  // Memoize not found component
+  // Memoize not found component - System notification style
   const notFoundComponent = useMemo(
     () => (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <Button icon={<ArrowLeftOutlined />} onClick={handleBack}>
+      <div className="h-full flex items-center justify-center bg-white">
+        <div className="max-w-md w-full text-center space-y-2">
+          {/* Icon - Document tray with notification bubble */}
+          <div className="flex justify-center">
+            <div className="relative">
+              {/* Document tray/box icon */}
+              <svg className="w-24 h-24 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                {/* Main box/tray */}
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+                {/* Additional lines inside box for document effect */}
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 8h6" className="text-gray-200" />
+              </svg>
+
+              {/* Notification bubble above */}
+              <div className="absolute -top-3 -right-3">
+                <svg className="w-12 h-12 text-gray-300" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  {/* Speech bubble */}
+                  <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
+                  {/* Three dots inside bubble */}
+                  <circle cx="8" cy="8" r="1" fill="white" />
+                  <circle cx="12" cy="8" r="1" fill="white" />
+                  <circle cx="16" cy="8" r="1" fill="white" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          {/* Heading */}
+          <div className="space-y-0.5">
+            <h2 className="text-xl font-bold text-gray-800 mt-1 mb-1 tracking-tight uppercase">THÔNG BÁO HỆ THỐNG</h2>
+            <p className="text-gray-500 text-xs leading-relaxed mb-4 px-6 font-medium italic">"Không tìm thấy lớp học"</p>
+          </div>
+
+          {/* Back Button */}
+          <Button
+            type="primary"
+            size="middle"
+            className="bg-blue-600 hover:bg-blue-700 border-0 shadow-md hover:shadow-lg transition-all duration-200 px-8"
+            onClick={handleBack}
+          >
             Quay lại
           </Button>
         </div>
-        <ClassInfoCard
-          classInfo={{
-            name: "Không tìm thấy",
-            code: "N/A",
-            students: 0,
-            status: "Không tồn tại",
-          }}
-        />
       </div>
     ),
     [handleBack]
@@ -444,8 +489,9 @@ export default function UserClassDetail() {
   );
 
   // Early returns after all hooks
-  if (loading) {
-    return loadingComponent;
+  // Show splash screen (must wait for minimum time duration)
+  if (showSplash || loading) {
+    return <DataLoadingSplash tip="ĐANG TẢI DỮ LIỆU..." />;
   }
 
   if (!classData) {

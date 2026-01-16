@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Table, Tag, Button, App } from "antd";
-import { EyeOutlined, UserOutlined } from "@ant-design/icons";
+import { Table, Tag, Button, App, Modal, Form, Input } from "antd";
+import { EyeOutlined, UserOutlined, KeyOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
-import { getClassStudentsByUser, type ClassStudentRecord } from "@/lib/api/classes";
+import { getClassStudentsByUser, joinClassByCode, type ClassStudentRecord } from "@/lib/api/classes";
 import { getCurrentUser } from "@/lib/api/users";
 import ClassesHeader from "@/app/components/classes/ClassesHeader";
 import type { ColumnsType } from "antd/es/table";
@@ -30,6 +30,11 @@ export default function UserClasses() {
     pageSize: 10,
     total: 0,
   });
+
+  // Modal join class
+  const [isJoinModalOpen, setIsJoinModalOpen] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [form] = Form.useForm();
 
   // Debounce search query
   useEffect(() => {
@@ -102,24 +107,43 @@ export default function UserClasses() {
     router.push(`/user/classes/${classId}`);
   };
 
+  const handleJoinByCode = async (values: { code: string }) => {
+    try {
+      setJoining(true);
+      const user = getCurrentUser();
+      if (!user || !user.user_id) {
+        message.error("Vui lòng đăng nhập để thực hiện hành động này");
+        return;
+      }
+
+      await joinClassByCode({
+        user_id: Number(user.user_id),
+        code: values.code,
+      });
+
+      message.success("Tham gia lớp học thành công!");
+      setIsJoinModalOpen(false);
+      form.resetFields();
+      fetchClasses(); // Tải lại danh sách
+    } catch (error: any) {
+      message.error(error?.message || "Mã code không hợp lệ hoặc bạn đã tham gia lớp này");
+    } finally {
+      setJoining(false);
+    }
+  };
+
   const columns: ColumnsType<ClassTableItem> = [
     {
       title: "Tên lớp",
       dataIndex: "name",
       key: "name",
-      render: (text: string) => (
-        <span className="font-semibold text-gray-800">{text}</span>
-      ),
+      render: (text: string) => <span className="font-semibold text-gray-800">{text}</span>,
     },
     {
       title: "Mã lớp",
       dataIndex: "code",
       key: "code",
-      render: (code: string) => (
-        <span className="text-gray-600 font-mono text-sm bg-gray-50 px-2 py-1 rounded">
-          {code}
-        </span>
-      ),
+      render: (code: string) => <span className="text-gray-600 font-mono text-sm bg-gray-50 px-2 py-1 rounded">{code}</span>,
     },
     {
       title: "Số học sinh",
@@ -137,10 +161,7 @@ export default function UserClasses() {
       dataIndex: "status",
       key: "status",
       render: (status: string) => (
-        <Tag
-          className="px-2 py-0.5 rounded-md font-semibold text-xs"
-          color={status === "Đang hoạt động" ? "green" : "orange"}
-        >
+        <Tag className="px-2 py-0.5 rounded-md font-semibold text-xs" color={status === "Đang hoạt động" ? "green" : "orange"}>
           {status}
         </Tag>
       ),
@@ -150,11 +171,7 @@ export default function UserClasses() {
       key: "action",
       width: 120,
       render: (_: any, record: ClassTableItem) => (
-        <Button
-          icon={<EyeOutlined />}
-          size="small"
-          onClick={() => handleView(record.classId)}
-        >
+        <Button icon={<EyeOutlined />} size="small" onClick={() => handleView(record.classId)}>
           Xem
         </Button>
       ),
@@ -163,10 +180,7 @@ export default function UserClasses() {
 
   return (
     <div className="space-y-3">
-      <ClassesHeader 
-        searchValue={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+      <ClassesHeader searchValue={searchQuery} onSearchChange={setSearchQuery} onJoinClick={() => setIsJoinModalOpen(true)} />
 
       {/* Table */}
       <Table
@@ -186,8 +200,49 @@ export default function UserClasses() {
         className="news-table"
         rowClassName="group hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 transition-all duration-200 cursor-pointer border-b border-gray-100"
         size="small"
-        locale={{ emptyText: "Không có lớp học nào" }}
       />
+
+      {/* Modal Tham gia lớp học */}
+      <Modal
+        title={
+          <div className="flex items-center gap-2 text-blue-600">
+            <KeyOutlined />
+            <span>Tham gia lớp học bằng mã code</span>
+          </div>
+        }
+        open={isJoinModalOpen}
+        onCancel={() => {
+          setIsJoinModalOpen(false);
+          form.resetFields();
+        }}
+        onOk={() => form.submit()}
+        confirmLoading={joining}
+        okText="Tham gia ngay"
+        cancelText="Hủy"
+        centered
+        width={400}
+      >
+        <div className="py-2">
+          <p className="text-gray-500 mb-4 text-sm">Vui lòng nhập mã code chính xác do giáo viên cung cấp để tham gia vào lớp học.</p>
+          <Form form={form} layout="vertical" onFinish={handleJoinByCode}>
+            <Form.Item
+              name="code"
+              rules={[
+                { required: true, message: "Vui lòng nhập mã code!" },
+                { min: 5, message: "Mã code quá ngắn!" },
+              ]}
+            >
+              <Input
+                prefix={<KeyOutlined className="text-gray-400" />}
+                placeholder="Nhập mã code tại đây..."
+                size="large"
+                className="rounded-lg"
+                autoFocus
+              />
+            </Form.Item>
+          </Form>
+        </div>
+      </Modal>
     </div>
   );
 }

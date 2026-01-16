@@ -15,6 +15,7 @@ import {
 } from "@ant-design/icons";
 import type { UploadFile, UploadProps } from "antd";
 import { getAssignmentById, type AssignmentDetailResponse } from "@/lib/api/assignments";
+import DataLoadingSplash from "@/app/components/common/DataLoadingSplash";
 
 const { Dragger } = Upload;
 
@@ -132,11 +133,7 @@ export default function ExerciseSubmitPage() {
   };
 
   if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto px-6 py-8">
-        <Skeleton active paragraph={{ rows: 10 }} />
-      </div>
-    );
+    return <DataLoadingSplash tip="ĐANG TẢI DỮ LIỆU..." />;
   }
 
   if (!assignment) {
@@ -159,8 +156,6 @@ export default function ExerciseSubmitPage() {
       <Button icon={<ArrowLeftOutlined />} onClick={handleBack} className="mb-4">
         Quay lại
       </Button>
-
-  
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
@@ -256,7 +251,10 @@ export default function ExerciseSubmitPage() {
         {fileList.length > 0 && (
           <div className="space-y-3 mb-4">
             {fileList.map((file) => (
-              <div key={file.uid} className="bg-gray-50 rounded-lg p-4 flex items-center gap-4 hover:bg-gray-100 transition-colors border border-gray-200">
+              <div
+                key={file.uid}
+                className="bg-gray-50 rounded-lg p-4 flex items-center gap-4 hover:bg-gray-100 transition-colors border border-gray-200"
+              >
                 <div className="shrink-0">{getFileIcon(file.name || "")}</div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-gray-900 truncate">{file.name}</p>

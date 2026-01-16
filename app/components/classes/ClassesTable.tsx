@@ -28,19 +28,13 @@ export default function ClassesTable({ data, loading, pagination, onEdit, onDele
       title: "Tên lớp",
       dataIndex: "name",
       key: "name",
-      render: (text: string) => (
-        <span className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors duration-200">
-          {text}
-        </span>
-      ),
+      render: (text: string) => <span className="font-semibold text-gray-800 group-hover:text-blue-600 transition-colors duration-200">{text}</span>,
     },
     {
       title: "Mã lớp",
       dataIndex: "code",
       key: "code",
-      render: (code: string) => (
-        <span className="text-gray-600 font-mono text-sm bg-gray-50 px-2 py-1 rounded">{code}</span>
-      ),
+      render: (code: string) => <span className="text-gray-600 font-mono text-sm bg-gray-50 px-2 py-1 rounded">{code}</span>,
     },
     {
       title: "Số học sinh",
@@ -142,7 +136,6 @@ export default function ClassesTable({ data, loading, pagination, onEdit, onDele
       columns={columns}
       dataSource={data}
       loading={loading}
-      locale={{ emptyText: "Không có lớp học nào" }}
       pagination={
         pagination
           ? {

@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Empty, Skeleton, App, Modal, ConfigProvider, theme, Button } from "antd";
+import { Empty, App, Modal, ConfigProvider, theme, Button } from "antd";
 import Swal from "sweetalert2";
 import io from "socket.io-client";
 import { getRagTestDetail, type RagTestDetail, type RagQuestion } from "@/lib/api/rag-exams";
 import { startExamAttempt, submitExamAttempt, logSecurityEvent } from "@/lib/api/exam-attempts";
 import { ExamHeader, QuestionCard, QuestionGrid } from "./components";
 import { useAntiCheat } from "@/app/hooks/useAntiCheat";
+import DataLoadingSplash from "@/app/components/common/DataLoadingSplash";
 
 const QUESTIONS_PER_PAGE = 5;
 
@@ -499,51 +500,13 @@ export default function ExamSessionPage() {
 
   // 0. Premium Splash Screen (First Priority)
   if (showSplash) {
-    return (
-      <div className="fixed inset-0 z-[2147483647] bg-white flex flex-col items-center justify-center p-4">
-        {/* Simplified Logo Splash */}
-        <div className="relative w-24 h-24 bg-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-100 mb-10 animate-in fade-in zoom-in duration-1000">
-          <span className="text-white text-4xl font-black tracking-tighter">AIO</span>
-        </div>
-
-        <div className="text-center animate-in slide-in-from-bottom duration-700">
-          <h1 className="text-2xl font-black text-slate-800 tracking-tight">HỆ THỐNG THI TRỰC TUYẾN</h1>
-          <div className="flex items-center justify-center gap-2.5 mt-4">
-            {[0.3, 0.15, 0].map((delay, i) => (
-              <div
-                key={i}
-                className="w-2.5 h-2.5 bg-indigo-600 rounded-full"
-                style={{
-                  animation: `super-bounce 0.8s infinite ease-in-out`,
-                  animationDelay: `-${delay}s`,
-                }}
-              />
-            ))}
-            <span className="text-slate-500 text-sm font-extrabold uppercase tracking-widest ml-2">Đang tải dữ liệu...</span>
-          </div>
-
-          <style jsx>{`
-            @keyframes super-bounce {
-              0%,
-              100% {
-                transform: translateY(0);
-              }
-              50% {
-                transform: translateY(-12px) scale(1.2);
-              }
-            }
-          `}</style>
-        </div>
-
-        <div className="absolute bottom-10 text-slate-300 text-xs font-semibold uppercase tracking-[0.3em]">Premium Learning Experience</div>
-      </div>
-    );
+    return <DataLoadingSplash tip="Đang tải dữ liệu..." />;
   }
 
   // 1. System Alert Overlay (Giao diện đơn giản cũ - Tĩnh)
   if (systemAlert) {
     return (
-      <div className="fixed inset-0 z-[2147483647] bg-white flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-2147483647 bg-white flex items-center justify-center p-4">
         <div className="max-w-md w-full flex flex-col items-center text-center">
           <Empty imageStyle={{ height: 120 }} description={null} />
           <h2 className="text-xl font-bold text-gray-800 mt-2 mb-4 tracking-tight uppercase">Thông báo hệ thống</h2>
@@ -563,46 +526,14 @@ export default function ExamSessionPage() {
     );
   }
 
-  // 2. Initial Loading (Minimalist)
+  // 2. Initial Loading - Use DataLoadingSplash
   if (loading && !test && !isSubmitted) {
-    return (
-      <div className="fixed inset-0 bg-white flex flex-col items-center justify-center gap-6">
-        <div className="relative">
-          <div className="w-12 h-12 border-4 border-indigo-50 border-t-indigo-600 rounded-full animate-spin"></div>
-        </div>
-        <div className="text-center">
-          <p className="text-gray-900 font-bold text-base">Đang chuẩn bị phiên làm bài...</p>
-          <p className="text-gray-400 text-xs">Vui lòng đợi trong giây lát</p>
-        </div>
-      </div>
-    );
+    return <DataLoadingSplash tip="Đang chuẩn bị phiên làm bài..." />;
   }
 
-  // 4. Detailed Loading Skeleton (Only if test is loaded but sub-loading)
+  // 4. Detailed Loading - Use DataLoadingSplash
   if (loading && !isSubmitted) {
-    return (
-      <div className="w-full h-[calc(100vh-64px)] bg-gray-50 flex flex-col">
-        {/* Header Skeleton */}
-        <div className="bg-white px-4 py-3 border-b border-gray-100 flex items-center justify-between mb-2 rounded-lg shrink-0">
-          <Skeleton.Button active size="small" style={{ width: 80 }} />
-          <div className="flex-1 max-w-xl mx-auto px-8 flex flex-col justify-center">
-            <div className="flex justify-between mb-1.5">
-              <Skeleton.Button active size="small" style={{ width: 50, height: 12 }} />
-              <Skeleton.Button active size="small" style={{ width: 30, height: 12 }} />
-            </div>
-            <Skeleton.Input active size="small" style={{ width: "100%", height: 6 }} className="rounded-full" />
-          </div>
-          <div className="flex items-center gap-3">
-            <Skeleton.Button active size="small" style={{ width: 60 }} />
-            <Skeleton.Button active size="small" style={{ width: 60, borderRadius: 20 }} />
-          </div>
-        </div>
-
-        <main className="flex-1 flex gap-2 overflow-hidden items-center justify-center p-10">
-          <Skeleton active />
-        </main>
-      </div>
-    );
+    return <DataLoadingSplash tip="Đang tải dữ liệu..." />;
   }
 
   // 5. Empty state
@@ -706,7 +637,7 @@ export default function ExamSessionPage() {
 
       {/* Examinee Gateway - Cánh cửa bắt đầu trên nền mờ */}
       {showRules && !systemAlert && (
-        <div className="fixed inset-0 z-[2147483647] bg-slate-900/20 backdrop-blur-md flex items-center justify-center p-6">
+        <div className="fixed inset-0 z-2147483647 bg-slate-900/20 backdrop-blur-md flex items-center justify-center p-6">
           <div
             style={{ animation: "rules-pop-up 0.5s cubic-bezier(0.25, 1, 0.5, 1)" }}
             className="max-w-xl w-full bg-white/95 rounded-[2.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.2)] border border-white/50 p-10 flex flex-col items-center backdrop-blur-2xl"

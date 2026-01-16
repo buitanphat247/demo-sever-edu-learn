@@ -15,8 +15,8 @@ export default function InfoBox({ type = "info", icon, title, children }: InfoBo
     switch (type) {
       case "warning":
         return {
-          container: "bg-yellow-50/50 rounded-lg p-3 border border-yellow-100",
-          iconColor: "text-yellow-600",
+          container: "bg-blue-50/50 rounded-lg p-3 border border-blue-100",
+          iconColor: "text-blue-600",
         };
       case "success":
         return {

@@ -69,20 +69,74 @@ export const deleteRagTest = async (testId: string): Promise<boolean> => {
   }
 };
 
-export const updateRagTest = async (testId: string, data: any): Promise<boolean> => {
+export const deleteRagTestsByClass = async (classId: string | number): Promise<boolean> => {
   try {
-    const response = await axios.put(`${AI_API_URL}/test/${testId}`, data);
+    const response = await axios.delete(`${AI_API_URL}/tests/class/${classId}`);
     return response.data.status === "success";
+  } catch (error) {
+    console.error("Error deleting class RAG tests:", error);
+    return false;
+  }
+};
+
+export interface UpdateTestData {
+  title?: string;
+  description?: string;
+  duration_minutes?: number;
+  max_attempts?: number;
+  is_published?: boolean;
+}
+
+export const updateRagTest = async (testId: string, data: UpdateTestData): Promise<boolean> => {
+  try {
+    const response = await axios.put(`${AI_API_URL}/test/${testId}`, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.status === 200 && response.data.status === "success";
   } catch (error) {
     console.error("Error updating RAG test:", error);
     return false;
   }
 };
 
-export const updateRagQuestion = async (questionId: string, data: any): Promise<boolean> => {
+export const publishRagTest = async (testId: string, isPublished: boolean): Promise<boolean> => {
   try {
-    const response = await axios.put(`${AI_API_URL}/question/${questionId}`, data);
-    return response.data.status === "success";
+    const response = await axios.post(
+      `${AI_API_URL}/test/${testId}/publish`,
+      { is_published: isPublished },
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.status === 200 && response.data.status === "success";
+  } catch (error) {
+    console.error("Error publishing/unpublishing RAG test:", error);
+    return false;
+  }
+};
+
+export interface UpdateQuestionData {
+  content?: string;
+  answer_a?: string;
+  answer_b?: string;
+  answer_c?: string;
+  answer_d?: string;
+  correct_answer?: string;
+  explanation?: string;
+}
+
+export const updateRagQuestion = async (questionId: string, data: UpdateQuestionData): Promise<boolean> => {
+  try {
+    const response = await axios.put(`${AI_API_URL}/question/${questionId}`, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.status === 200 && response.data.status === "success";
   } catch (error) {
     console.error("Error updating RAG question:", error);
     return false;

@@ -1,15 +1,16 @@
 "use client";
 
 import { Button, Input } from "antd";
-import { SearchOutlined, PlusOutlined } from "@ant-design/icons";
+import { SearchOutlined, PlusOutlined, KeyOutlined } from "@ant-design/icons";
 
 interface ClassesHeaderProps {
   searchValue?: string;
   onSearchChange?: (value: string) => void;
   onAddClick?: () => void;
+  onJoinClick?: () => void;
 }
 
-export default function ClassesHeader({ searchValue, onSearchChange, onAddClick }: ClassesHeaderProps) {
+export default function ClassesHeader({ searchValue, onSearchChange, onAddClick, onJoinClick }: ClassesHeaderProps) {
   return (
     <div className="space-y-4">
       {/* Search and Add Button */}
@@ -23,6 +24,11 @@ export default function ClassesHeader({ searchValue, onSearchChange, onAddClick 
           onChange={(e) => onSearchChange?.(e.target.value)}
           allowClear
         />
+        {onJoinClick && (
+          <Button type="primary" icon={<KeyOutlined />} size="middle" onClick={onJoinClick} className="shadow-sm">
+            Tham gia bằng code
+          </Button>
+        )}
         {onAddClick && (
           <Button
             type="default"

@@ -79,6 +79,7 @@ const ClassExamsTab = memo(function ClassExamsTab({
           subjectColor: isLocked ? "bg-gray-100 text-gray-500" : "bg-blue-100 text-blue-700",
           isAi: true,
           isLocked: isLocked, // Attach lock status
+          isPublished: t.is_published ?? false, // Add publish status
         };
       });
       setRagExams(mappedTests);
@@ -370,6 +371,19 @@ const ClassExamsTab = memo(function ClassExamsTab({
                     {exam.isAi && (
                       <Tag color="cyan" icon={<RobotOutlined />} className="font-bold border-cyan-200">
                         THI THỬ AI
+                      </Tag>
+                    )}
+                    {exam.isPublished !== undefined && (
+                      <Tag 
+                        color={exam.isPublished ? "blue" : "orange"} 
+                        className="font-bold"
+                        style={{
+                          backgroundColor: exam.isPublished ? "#e6f4ff" : "#fff7e6",
+                          color: exam.isPublished ? "#0958d9" : "#d46b08",
+                          borderColor: exam.isPublished ? "#91caff" : "#ffd591"
+                        }}
+                      >
+                        {exam.isPublished ? "Đã xuất bản" : "Chưa xuất bản"}
                       </Tag>
                     )}
                   </div>

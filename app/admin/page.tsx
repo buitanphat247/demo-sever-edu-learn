@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  AppstoreOutlined,
-  UserOutlined,
-  ArrowRightOutlined,
-  CloudDownloadOutlined,
-} from "@ant-design/icons";
+import { AppstoreOutlined, UserOutlined, ArrowRightOutlined, CloudDownloadOutlined, FileTextOutlined } from "@ant-design/icons";
 import { Card } from "antd";
 import { useRouter } from "next/navigation";
 
@@ -55,6 +50,13 @@ const stats = [
     color: "text-cyan-600",
     bgColor: "bg-cyan-50",
   },
+  {
+    label: "Tài liệu",
+    value: "89",
+    icon: FileTextOutlined,
+    color: "text-purple-600",
+    bgColor: "bg-purple-50",
+  },
 ];
 
 function WelcomeBanner() {
@@ -68,16 +70,14 @@ function WelcomeBanner() {
   return (
     <div className="bg-linear-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white border border-gray-200 hover:shadow-lg transition-shadow duration-300">
       <h1 className="text-3xl font-bold mb-2">{getGreeting()}, Admin Teacher!</h1>
-      <p className="text-blue-100 text-lg">
-        Chào mừng bạn quay trở lại. Dưới đây là tổng quan về hệ thống của bạn.
-      </p>
+      <p className="text-blue-100 text-lg">Chào mừng bạn quay trở lại. Dưới đây là tổng quan về hệ thống của bạn.</p>
     </div>
   );
 }
 
 function StatisticsCards({ stats }: { stats: any[] }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
       {stats.map((stat, index) => {
         const Icon = stat.icon;
         return (
@@ -121,9 +121,7 @@ function QuickActionsGrid({ items }: { items: any[] }) {
               body: { padding: 0 },
             }}
           >
-            <div
-              className={`bg-linear-to-br ${item.gradient} p-6 text-white relative overflow-hidden`}
-            >
+            <div className={`bg-linear-to-br ${item.gradient} p-6 text-white relative overflow-hidden`}>
               <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
               <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full -ml-12 -mb-12"></div>
               <div className="relative z-10">

@@ -42,26 +42,60 @@ export default function AIGenerationSection({ uploadedFile }: AIGenerationSectio
   const router = useRouter();
   const classId = params?.id as string;
 
+  const generateAutoTitle = () => {
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const timeStr = now.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    return `AI Exam - ${dateStr} ${timeStr}`;
+  };
+
   const onFinish = async (values: any) => {
+    // Validate: Phải có file hoặc description
+    if (!uploadedFile?.originFileObj && !values.description?.trim()) {
+      message.error("Vui lòng upload file hoặc nhập mô tả/chủ đề");
+      return;
+    }
+
     setLoading(true);
     try {
       const formData = new FormData();
       
+      // File (optional - có thể dùng description thay thế)
       if (uploadedFile?.originFileObj) {
         formData.append("file", uploadedFile.originFileObj);
       }
       
-      formData.append("title", values.title);
-      formData.append("description", values.description || "");
+      // Title: Tự động tạo nếu không có
+      const title = values.title?.trim() || generateAutoTitle();
+      formData.append("title", title);
+      
+      // Description (required nếu không có file)
+      formData.append("description", values.description?.trim() || "");
+      
+      // Số lượng câu hỏi (required)
       formData.append("num_questions", values.num_questions.toString());
-      formData.append("difficulty", values.difficulty);
-      formData.append("mode", values.mode);
-      formData.append("duration_minutes", values.duration_minutes.toString());
-      formData.append("max_attempts", values.max_attempts.toString()); // Added
-      formData.append("class_id", classId);
+      
+      // Mode (default: llamaindex)
+      formData.append("mode", values.mode || "llamaindex");
+      
+      // Class ID
+      if (classId) {
+        formData.append("class_id", classId);
+      }
+      
+      // Các cấu hình khác (duration_minutes, total_score, max_attempts, difficulty) 
+      // KHÔNG gửi - để API dùng default values
+      // is_published = false (mặc định từ API)
 
-      // URL của Python AI Tool - Nên để trong env
-      const AI_API_URL = "http://localhost:5000/question/create_test";
+      // URL của Python AI Tool - Sử dụng endpoint đúng theo API docs
+      const AI_API_URL = (process.env.NEXT_PUBLIC_FLASK_API_URL || "http://localhost:5000") + "/ai-exam/create_test";
       
       const response = await axios.post(AI_API_URL, formData, {
         headers: {
@@ -92,11 +126,11 @@ export default function AIGenerationSection({ uploadedFile }: AIGenerationSectio
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/5 rounded-full -ml-16 -mb-16 blur-3xl"></div>
 
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-3 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-xl shadow-lg shadow-blue-200">
+        <div className="p-3 bg-linear-to-tr from-blue-600 to-indigo-600 rounded-xl shadow-lg shadow-blue-200">
           <RobotOutlined className="text-2xl text-white" />
         </div>
         <div>
-          <Title level={4} className="!mb-0">Tạo đề thi bằng AI Agent</Title>
+          <Title level={4} className="mb-0!">Tạo đề thi bằng AI Agent</Title>
           <Text type="secondary" className="text-xs">Sử dụng công nghệ RAG để sinh câu hỏi bám sát tài liệu</Text>
         </div>
         <Badge 
@@ -111,36 +145,35 @@ export default function AIGenerationSection({ uploadedFile }: AIGenerationSectio
         layout="vertical"
         initialValues={{
           num_questions: 10,
-          difficulty: "hard",
-          mode: "llamaindex",
-          duration_minutes: 45,
-          max_attempts: 0 // 0 = Infinity
+          mode: "llamaindex"
         }}
         onFinish={onFinish}
       >
-        <Form.Item
-          name="title"
-          label={<span className="font-semibold text-gray-700">Tên bộ đề</span>}
-          rules={[{ required: true, message: "Vui lòng nhập tên bộ đề" }]}
-        >
-          <Input 
-            placeholder="Ví dụ: Kiểm tra giữa kỳ môn Hóa học" 
-            className="rounded-lg h-11 border-gray-200 hover:border-blue-400 focus:border-blue-500 transition-all"
-            prefix={<FileTextOutlined className="text-gray-400 mr-2" />}
-          />
+        <Form.Item name="title" className="hidden">
+          <Input />
         </Form.Item>
 
         <Form.Item
           name="description"
           label={
             <div className="flex justify-between w-full">
-              <span className="font-semibold text-gray-700">Mô tả hoặc Chủ đề</span>
+              <span className="font-semibold text-gray-700">Mô tả hoặc Chủ đề <span className="text-red-500">*</span></span>
               {uploadedFile && <Badge status="success" text="Đã kèm tài liệu" />}
             </div>
           }
+          rules={[
+            {
+              validator: (_, value) => {
+                if (!uploadedFile?.originFileObj && !value?.trim()) {
+                  return Promise.reject(new Error("Vui lòng upload file hoặc nhập mô tả/chủ đề"));
+                }
+                return Promise.resolve();
+              },
+            },
+          ]}
         >
           <TextArea 
-            placeholder="Nhập nội dung tóm tắt hoặc yêu cầu cụ thể cho AI (Ví dụ: Hãy tập trung vào chương 2 - Kim loại kiềm)..." 
+            placeholder="Nhập nội dung tóm tắt hoặc yêu cầu cụ thể cho AI (Ví dụ: Hãy tập trung vào chương 2 - Kim loại kiềm)... Hoặc upload file tài liệu ở tab 'Tải file thủ công'" 
             rows={4}
             className="rounded-lg border-gray-200 hover:border-blue-400 focus:border-blue-500"
           />
@@ -151,22 +184,13 @@ export default function AIGenerationSection({ uploadedFile }: AIGenerationSectio
             <SettingOutlined className="text-blue-600" />
             <span>Cấu hình AI nâng cao</span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-0">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-x-6 gap-y-0">
             <Form.Item name="num_questions" label={<span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Số lượng câu hỏi</span>}>
               <InputNumber min={1} max={30} className="w-full rounded-lg h-10 flex items-center" />
-            </Form.Item>
-            <Form.Item name="duration_minutes" label={<span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Thời gian (phút)</span>}>
-              <InputNumber min={5} max={180} className="w-full rounded-lg h-10 flex items-center" />
-            </Form.Item>
-            <Form.Item name="max_attempts" label={<span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Số lượt làm bài</span>}>
-              <InputNumber min={0} max={100} className="w-full rounded-lg h-10 flex items-center" placeholder="0 = Không giới hạn" />
             </Form.Item>
           </div>
 
           <div className="hidden">
-            <Form.Item name="difficulty">
-              <Input />
-            </Form.Item>
             <Form.Item name="mode">
               <Input />
             </Form.Item>
@@ -178,10 +202,10 @@ export default function AIGenerationSection({ uploadedFile }: AIGenerationSectio
             type="primary"
             htmlType="submit"
             block
-            size="large"
+            size="middle"
             loading={loading}
             disabled={loading}
-            className="h-14 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 border-none hover:opacity-90 shadow-lg shadow-blue-200 flex items-center justify-center gap-2 font-bold text-lg transition-all transform hover:scale-[1.01] active:scale-[0.98]"
+            className="rounded-xl bg-linear-to-r from-blue-600 to-indigo-600 border-none shadow-none font-bold text-base"
           >
             {loading ? "AI ĐANG TẠO CÂU HỎI..." : "BẮT ĐẦU TẠO ĐỀ THI BẰNG AI"}
           </Button>

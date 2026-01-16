@@ -14,6 +14,7 @@ import BannedListModal from "@/app/components/classes/BannedListModal";
 import ClassExercisesTab from "@/app/components/classes/ClassExercisesTab";
 import ClassNotificationsTab from "@/app/components/classes/ClassNotificationsTab";
 import ClassExamsTab from "@/app/components/classes/ClassExamsTab";
+import DataLoadingSplash from "@/app/components/common/DataLoadingSplash";
 import {
   getClassById,
   removeStudentFromClass,
@@ -24,6 +25,7 @@ import {
   type ClassDetailResponse,
   type ClassStudentRecord,
 } from "@/lib/api/classes";
+import { deleteRagTestsByClass } from "@/lib/api/rag-exams";
 import type { StudentItem } from "@/interface/students";
 import { ensureMinLoadingTime, CLASS_STATUS_MAP, formatStudentId } from "@/lib/utils/classUtils";
 import { getUserIdFromCookie } from "@/lib/utils/cookies";
@@ -60,6 +62,7 @@ export default function ClassDetail() {
   const [isBannedListModalOpen, setIsBannedListModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("students");
   const [isTabLoading, setIsTabLoading] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
   const [exerciseSearchQuery, setExerciseSearchQuery] = useState("");
   const [exercisePage, setExercisePage] = useState(1);
   const exercisePageSize = 4;
@@ -126,9 +129,7 @@ export default function ClassDetail() {
         classNameRef.current = data.name; // Store className in ref
         return data.name; // Return className for use in fetchClassStudents
       } catch (error: any) {
-        if (showLoading) {
-          message.error(error?.message || "Không thể tải thông tin lớp học");
-        }
+        // message.error(error?.message || "Không thể tải thông tin lớp học");
         // Chỉ set null nếu showLoading = true để tránh mất dữ liệu khi refresh ngầm
         if (showLoading) {
           setClassData(null);
@@ -171,7 +172,7 @@ export default function ClassDetail() {
         if (showLoading) {
           // Ensure minimum loading time even on error
           await ensureMinLoadingTime(startTime);
-          message.error(error?.message || "Không thể tải danh sách học sinh");
+          // message.error(error?.message || "Không thể tải danh sách học sinh");
         }
         // Không set students = [] nếu đang refresh ngầm để tránh mất dữ liệu
         if (showLoading) {
@@ -188,6 +189,9 @@ export default function ClassDetail() {
     if (!currentClassId) return;
 
     setLoading(true);
+    setShowSplash(true);
+    const startTime = Date.now();
+
     try {
       // Fetch class info first and get className
       const className = await fetchClassInfo(true);
@@ -197,6 +201,13 @@ export default function ClassDetail() {
       // Error already handled in fetchClassInfo
     } finally {
       setLoading(false);
+
+      const elapsed = Date.now() - startTime;
+      const remaining = Math.max(0, 2000 - elapsed);
+
+      setTimeout(() => {
+        setShowSplash(false);
+      }, remaining);
     }
   }, [fetchClassInfo, fetchClassStudents]);
 
@@ -224,6 +235,10 @@ export default function ClassDetail() {
       cancelText: "Hủy",
       onOk: async () => {
         try {
+          // 1. Xóa toàn bộ đề thi AI liên quan
+          await deleteRagTestsByClass(currentClassId);
+
+          // 2. Xóa lớp học
           await deleteClass(currentClassId);
           message.success(`Đã xóa lớp học "${currentClassName}" thành công`);
           // Redirect về trang danh sách lớp học
@@ -334,13 +349,6 @@ export default function ClassDetail() {
     [modal, message]
   );
 
-  const handleAddSingle = useCallback(() => {
-    router.push(`/admin/classes/${classId}/single-create`);
-  }, [router, classId]);
-
-  const handleAddMultiple = useCallback(() => {
-    router.push(`/admin/classes/${classId}/multiple-create`);
-  }, [router, classId]);
 
   const handleViewBannedList = useCallback(() => {
     setIsBannedListModalOpen(true);
@@ -433,15 +441,8 @@ export default function ClassDetail() {
   };
 
   // Early returns after all hooks
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spin size="large">
-          <div style={{ minHeight: "200px" }} />
-        </Spin>
-        <div className="absolute text-gray-600 mt-20">Đang tải thông tin lớp học...</div>
-      </div>
-    );
+  if (showSplash || loading) {
+    return <DataLoadingSplash tip="Đang kiểm tra quyền truy cập lớp học..." />;
   }
 
   if (!classData) {
@@ -487,8 +488,6 @@ export default function ClassDetail() {
                 students={students}
                 onViewStudent={handleViewStudent}
                 onRemoveStudent={handleRemoveStudent}
-                onAddSingle={handleAddSingle}
-                onAddMultiple={handleAddMultiple}
                 onViewBanned={handleViewBanned}
                 onViewBannedList={handleViewBannedList}
                 onBanStudent={handleBanStudent}

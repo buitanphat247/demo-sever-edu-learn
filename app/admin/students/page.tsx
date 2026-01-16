@@ -167,16 +167,6 @@ export default function AdminStudents() {
         ),
       },
       {
-        title: "Lớp",
-        dataIndex: "class",
-        key: "class",
-        render: (classCode: string) => (
-          <span className="text-gray-600 font-mono text-sm bg-gray-50 px-2 py-1 rounded">
-            {classCode}
-          </span>
-        ),
-      },
-      {
         title: "Email",
         dataIndex: "email",
         key: "email",
@@ -187,19 +177,6 @@ export default function AdminStudents() {
         dataIndex: "phone",
         key: "phone",
         render: (phone: string) => <span className="text-gray-600">{phone || "N/A"}</span>,
-      },
-      {
-        title: "Trạng thái",
-        dataIndex: "status",
-        key: "status",
-        render: (status: string) => (
-          <Tag
-            className="px-2 py-0.5 rounded-md font-semibold text-xs"
-            color={status === "Đang học" ? "green" : status === "Tạm nghỉ" ? "orange" : status === "Bị cấm" ? "red" : "blue"}
-          >
-            {status}
-          </Tag>
-        ),
       },
       {
         title: "Hành động",

@@ -1,3 +1,5 @@
+import type { PartData, QuestionItem } from "./types";
+
 export const parseLatexToData = (latexSource: string): PartData[] => {
   const parts: PartData[] = [];
   const lines = latexSource.split("\n");
@@ -49,6 +51,15 @@ export const parseLatexToData = (latexSource: string): PartData[] => {
     const questionMatch = line.match(questionRegex);
     if (questionMatch) {
       saveCurrentQuestion(); // Save previous question if any
+
+      // Ensure currentPart exists before creating question
+      if (!currentPart) {
+        // Create a default part if none exists
+        currentPart = {
+          name: "PHẦN I. Câu hỏi",
+          questions: [],
+        };
+      }
 
       currentQuestion = {
         id: `part-${parts.length}-q-${currentPart.questions.length}`, // Stable ID based on index
