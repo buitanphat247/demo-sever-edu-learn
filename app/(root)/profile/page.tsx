@@ -17,6 +17,8 @@ import { getUserInfo, getCurrentUser } from "@/lib/api/users";
 import type { UserInfoResponse } from "@/lib/api/users";
 import { useTheme } from "@/app/context/ThemeContext";
 
+import ProfileSkeleton from "@/app/components/profile/ProfileSkeleton";
+
 export default function Profile() {
   const [user, setUser] = useState<UserInfoResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -48,11 +50,7 @@ export default function Profile() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-[#0f172a] transition-colors duration-500">
-        <Spin size="large" />
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   if (!user) {
@@ -151,7 +149,7 @@ export default function Profile() {
                       token: { colorPrimary: "#3b82f6" },
                     }}
                   >
-                    <Switch checked={theme === "dark"} onChange={toggleTheme} />
+                    <Switch checked={theme === "dark"} onChange={(_, e) => toggleTheme(e as any)} />
                   </ConfigProvider>
                 </div>
               </div>

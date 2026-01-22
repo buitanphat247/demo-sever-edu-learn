@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { Button, Dropdown, Avatar } from "antd";
+import { Button, Dropdown, Avatar, Switch } from "antd";
 import type { MenuProps } from "antd";
-import { UserOutlined, AppstoreOutlined, MessageOutlined, MoonOutlined, SunOutlined } from "@ant-design/icons";
+import { UserOutlined, AppstoreOutlined, MessageOutlined, MoonOutlined, SunOutlined, BulbOutlined, BulbFilled } from "@ant-design/icons";
 import { getCurrentUser } from "@/lib/api/users";
 import { signOut } from "@/lib/api/auth";
 import type { AuthState } from "@/lib/utils/auth-server";
@@ -208,7 +208,7 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
       <header className="bg-white dark:bg-[#001529] shadow-md dark:shadow-xl shadow-slate-200 dark:shadow-slate-800 sticky top-0 z-50 transition-all duration-500 ease-in-out">
         <nav className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center space-x-3 group">
-            <div className="w-12 h-12 relative transform group-hover:scale-105 transition-transform flex items-center justify-center">
+            <div className="w-12 h-12 relative flex items-center justify-center">
               <img src="/images/logo/1.png" alt="Thư viện số" width={48} height={48} className="object-contain" />
             </div>
             <span className="text-2xl font-bold text-slate-800 dark:text-white capitalize transition-colors duration-300">Thư viện số</span>
@@ -221,15 +221,32 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
                 <Link
                   key={link.to}
                   href={link.to}
-                  className={`relative py-2 transition-all duration-300 ${
-                    isActive
-                      ? "text-blue-600 dark:text-blue-400 opacity-100"
-                      : "text-slate-600 dark:text-white/80 hover:opacity-100 hover:text-blue-600 dark:hover:text-blue-400"
-                  }`}
+                  className={`relative py-2 transition-colors duration-200 ${!isActive ? "nav-link" : ""}`}
+                  style={{
+                    color: isActive
+                      ? undefined
+                      : theme === "dark"
+                      ? "#ffffff"
+                      : "#475569",
+                  }}
                 >
-                  <span className="font-bold text-lg relative z-10">{link.label}</span>
+                  <span
+                    className={`font-bold text-lg relative z-10 ${
+                      isActive ? "text-blue-600 dark:text-blue-400" : ""
+                    }`}
+                    style={
+                      !isActive
+                        ? {
+                            color: theme === "dark" ? "#ffffff" : "#475569",
+                          }
+                        : undefined
+                    }
+                  >
+                    {link.label}
+                  </span>
+                  {/* Active underline */}
                   {isActive && (
-                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full animate-in fade-in slide-in-from-left-1/2 duration-300"></span>
+                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
                   )}
                 </Link>
               );
@@ -250,13 +267,21 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
                 className={`relative py-2 flex items-center gap-1 transition-colors duration-200 ${
                   isFeatureActive || isFeatureDropdownOpen
                     ? "text-blue-600 dark:text-blue-400"
-                    : "text-slate-700 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
+                    : "nav-link"
                 }`}
+                style={
+                  !(isFeatureActive || isFeatureDropdownOpen)
+                    ? {
+                        color: theme === "dark" ? "#ffffff" : "#475569",
+                      }
+                    : undefined
+                }
               >
-                <span className="font-bold text-lg relative z-10">Tính năng</span>
-                {(isFeatureActive || isFeatureDropdownOpen) && (
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
-                )}
+                 <span className="font-bold text-lg relative z-10">Tính năng</span>
+                 {/* Active underline */}
+                 {(isFeatureActive || isFeatureDropdownOpen) && (
+                   <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
+                 )}
               </button>
             </Dropdown>
 
@@ -275,27 +300,32 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
                 className={`relative py-2 flex items-center gap-1 transition-colors duration-200 ${
                   isAboutActive || isAboutDropdownOpen
                     ? "text-blue-600 dark:text-blue-400"
-                    : "text-slate-700 dark:text-white hover:text-blue-600 dark:hover:text-blue-400"
+                    : "nav-link"
                 }`}
+                style={
+                  !(isAboutActive || isAboutDropdownOpen)
+                    ? {
+                        color: theme === "dark" ? "#ffffff" : "#475569",
+                      }
+                    : undefined
+                }
               >
-                <span className="font-bold text-lg relative z-10">Về chúng tôi</span>
-                {(isAboutActive || isAboutDropdownOpen) && (
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
-                )}
+                 <span className="font-bold text-lg relative z-10">Về chúng tôi</span>
+                 {/* Active underline */}
+                 {(isAboutActive || isAboutDropdownOpen) && (
+                   <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
+                 )}
               </button>
             </Dropdown>
           </div>
 
           <div className="flex items-center gap-5">
             <button
-              onClick={toggleTheme}
-              className="w-10 h-10 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-yellow-500 dark:hover:text-white transition-all duration-300"
+              onClick={(e) => toggleTheme(e)}
+              className="theme-toggle-btn"
+              aria-label="Toggle Theme"
             >
-              {theme === "dark" ? (
-                <SunOutlined className="text-xl text-yellow-400" />
-              ) : (
-                <MoonOutlined className="text-xl" />
-              )}
+              {theme === "dark" ? <BulbFilled /> : <BulbOutlined />}
             </button>
             {user ? (
               <Dropdown 
@@ -356,7 +386,7 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
                 overlayClassName="user-dropdown-overlay"
               >
                 <div className="flex items-center gap-3 cursor-pointer group py-1">
-                  <div className="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-white/30 bg-slate-100 dark:bg-white/20 backdrop-blur-sm flex items-center justify-center text-slate-600 dark:text-white group-hover:bg-white group-hover:text-blue-600 transition-all duration-300 shadow-sm relative overflow-hidden">
+                  <div className="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-white/30 bg-slate-100 dark:bg-white/20 backdrop-blur-sm flex items-center justify-center text-slate-600 dark:text-white group-hover:bg-white group-hover:text-blue-600 group-hover:border-blue-500 transition-colors duration-300 shadow-sm relative overflow-hidden">
                      {user.avatar ? (
                         <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
                      ) : (
@@ -366,14 +396,14 @@ export default function HeaderClient({ initialAuth }: HeaderClientProps) {
                      )}
                   </div>
                   <div className="hidden md:block text-right">
-                     <div className="text-sm font-bold text-slate-700 dark:text-white leading-tight group-hover:opacity-90 transition-opacity">
+                     <div className="text-sm font-bold text-slate-700 dark:text-white leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
                         {fixUtf8(user.fullname || user.username)}
                      </div>
-                     <div className="text-[10px] text-slate-500 dark:text-blue-100 font-medium opacity-80 uppercase tracking-widest">
+                     <div className="text-[10px] text-slate-500 dark:text-blue-100 font-medium opacity-80 uppercase tracking-widest group-hover:opacity-100 transition-opacity duration-300">
                         {userRoleLabel.toUpperCase()}
                      </div>
                   </div>
-                  <svg className="w-4 h-4 text-slate-500 dark:text-blue-100 group-hover:rotate-180 transition-transform duration-300 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-slate-500 dark:text-blue-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 hidden md:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>

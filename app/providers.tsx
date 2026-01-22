@@ -5,19 +5,35 @@ import { ThemeProvider, useTheme } from "@/app/context/ThemeContext";
 
 function AntdConfigProvider({ children }: { children: React.ReactNode }) {
   const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   return (
     <ConfigProvider
       theme={{
-        algorithm: theme === "dark" ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm,
+        algorithm: isDark ? antTheme.darkAlgorithm : antTheme.defaultAlgorithm,
         token: {
           fontFamily: "inherit",
-          colorBgContainer: theme === "dark" ? "#1f2937" : "#ffffff",
+          colorBgContainer: isDark ? "#1e293b" : "#ffffff",
+          colorBorder: isDark ? "#334155" : "#e2e8f0",
+          colorPrimary: "#3b82f6",
+          borderRadius: 12,
         },
         components: {
           Button: {
-            colorPrimary: "#1c91e3",
+            colorPrimary: "#3b82f6",
+            borderRadius: 10,
           },
+          Input: {
+            colorBgContainer: isDark ? "#0f172a" : "#f8fafc",
+            colorBorder: isDark ? "#334155" : "#e2e8f0",
+          },
+          Select: {
+            colorBgContainer: isDark ? "#0f172a" : "#f8fafc",
+            colorBorder: isDark ? "#334155" : "#e2e8f0",
+          },
+          Card: {
+            colorBgContainer: isDark ? "#1e293b" : "#ffffff",
+          }
         },
       }}
     >

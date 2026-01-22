@@ -5,28 +5,35 @@ type Theme = "light" | "dark";
 
 interface ThemeContextType {
   theme: Theme;
-  toggleTheme: () => void;
+  toggleTheme: (e?: React.MouseEvent) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+// Get initial theme from document class (set by inline script in layout.tsx)
+function getInitialTheme(): Theme {
+  if (typeof window !== "undefined") {
+    return document.documentElement.classList.contains("dark") ? "dark" : "light";
+  }
+  return "light";
+}
+
+import { flushSync } from "react-dom";
+
+// ... (Theme type definition lines 4-19 remain same, not replacing them, just Context logic below)
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>("light");
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    const savedTheme = localStorage.getItem("theme") as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle("dark", savedTheme === "dark");
-    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setTheme("dark");
-      document.documentElement.classList.toggle("dark", true);
-    }
+    // Sync state with actual DOM class (already set by inline script)
+    const isDark = document.documentElement.classList.contains("dark");
+    setTheme(isDark ? "dark" : "light");
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = async (e?: React.MouseEvent) => {
     const newTheme = theme === "light" ? "dark" : "light";
     
     // Check if View Transition API is supported
@@ -37,16 +44,63 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    (document as any).startViewTransition(() => {
-      setTheme(newTheme);
-      localStorage.setItem("theme", newTheme);
-      document.documentElement.classList.toggle("dark", newTheme === "dark");
+    // Get click position or default to top-right corner
+    const x = e?.clientX ?? window.innerWidth;
+    const y = e?.clientY ?? 0;
+    
+    const endRadius = Math.hypot(
+        Math.max(x, innerWidth - x),
+        Math.max(y, innerHeight - y)
+    );
+
+    // Disable transitions during the capture phase to ensure the new snapshot is the final state
+    document.documentElement.classList.add('no-transitions');
+
+    const transition = (document as any).startViewTransition(() => {
+         // Flush updates to ensure React components are fully rendered in the new state
+         // before the snapshot is taken
+         flushSync(() => {
+            setTheme(newTheme);
+         });
+         localStorage.setItem("theme", newTheme);
+         document.documentElement.classList.toggle("dark", newTheme === "dark");
     });
+    
+    // waiting for the transition to catch the "new" image
+    try {
+        await transition.ready;
+        
+        const clipPath = [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+        ];
+        
+        // Animate the new view expanding from the click position
+        document.documentElement.animate(
+            {
+                clipPath: clipPath,
+            },
+            {
+                duration: 1500,
+                easing: "cubic-bezier(0.25, 1, 0.5, 1)", // Smoother quart-like easing
+                pseudoElement: "::view-transition-new(root)",
+            }
+        );
+    } finally {
+         // Re-enable transitions after the view transition is starting/ready
+         // effectively we can remove it once the "new" snapshot is captured, 
+         // which happens when .ready resolves. 
+         // But keeping it off until animation finishes is also fine, 
+         // though we usually want hover effects to work during the 1.5s animation?
+         // Let's remove it when ready resolves.
+         document.documentElement.classList.remove('no-transitions');
+    }
   };
 
+  // Don't hide content - inline script already set the correct theme class
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {mounted ? children : <div style={{ visibility: "hidden" }}>{children}</div>}
+      {children}
     </ThemeContext.Provider>
   );
 }

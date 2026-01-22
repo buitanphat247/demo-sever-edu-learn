@@ -89,11 +89,11 @@ export default function TranslatorFeature() {
 
   return (
     <div className="container mx-auto px-4 max-w-6xl">
-      <div className="bg-[#1e293b] rounded-2xl border border-slate-700/50 shadow-2xl p-6 md:p-8">
+      <div className="bg-white dark:bg-[#1e293b] rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-xl dark:shadow-2xl p-6 md:p-8 transition-colors duration-300">
           {/* Language Selectors */}
           <div className="flex flex-col md:flex-row gap-4 mb-6">
             <div className="flex-1">
-              <label className="block text-slate-300 font-medium mb-2">Ngôn ngữ nguồn</label>
+              <label className="block text-slate-600 dark:text-slate-300 font-medium mb-2">Ngôn ngữ nguồn</label>
               <Select
                 value={sourceLanguage}
                 onChange={setSourceLanguage}
@@ -107,13 +107,13 @@ export default function TranslatorFeature() {
                 type="default"
                 icon={<SwapOutlined />}
                 onClick={handleSwapLanguages}
-                className="h-10 w-10 rounded-xl border-slate-600 bg-[#0f172a] text-slate-300 hover:border-blue-500 hover:text-blue-400 hover:bg-blue-500/10 transition-all"
+                className="h-10 w-10 rounded-xl border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-[#0f172a] text-slate-600 dark:text-slate-300 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-all font-medium"
                 title="Đổi ngôn ngữ"
               />
             </div>
 
             <div className="flex-1">
-              <label className="block text-slate-300 font-medium mb-2">Ngôn ngữ đích</label>
+              <label className="block text-slate-600 dark:text-slate-300 font-medium mb-2">Ngôn ngữ đích</label>
               <Select
                 value={targetLanguage}
                 onChange={setTargetLanguage}
@@ -128,7 +128,7 @@ export default function TranslatorFeature() {
             {/* Source Text */}
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-slate-300 font-medium">Văn bản cần dịch</label>
+                <label className="text-slate-600 dark:text-slate-300 font-medium">Văn bản cần dịch</label>
                 <div className="flex gap-2">
                   {sourceText && (
                     <>
@@ -136,14 +136,14 @@ export default function TranslatorFeature() {
                         type="text"
                         icon={<SoundOutlined />}
                         onClick={() => handleSpeak(sourceText, sourceLanguage)}
-                        className="text-slate-400 hover:text-blue-400 h-8 px-2"
+                        className="text-slate-400 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 h-8 px-2"
                         title="Phát âm"
                       />
                       <Button
                         type="text"
                         icon={<CopyOutlined />}
                         onClick={() => handleCopy(sourceText, "source")}
-                        className="text-slate-400 hover:text-blue-400 h-8 px-2"
+                        className="text-slate-400 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 h-8 px-2"
                         title="Sao chép"
                       />
                     </>
@@ -155,7 +155,7 @@ export default function TranslatorFeature() {
                 onChange={(e) => setSourceText(e.target.value)}
                 placeholder="Nhập văn bản cần dịch..."
                 rows={12}
-                className="resize-none bg-[#0f172a] border-slate-600 text-white"
+                className="resize-none border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white rounded-xl placeholder:text-slate-400 shadow-sm"
                 showCount
                 maxLength={5000}
               />
@@ -164,7 +164,7 @@ export default function TranslatorFeature() {
             {/* Translated Text */}
             <div className="relative">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-slate-300 font-medium">Kết quả dịch</label>
+                <label className="text-slate-600 dark:text-slate-300 font-medium">Kết quả dịch</label>
                 <div className="flex gap-2">
                   {translatedText && (
                     <>
@@ -172,14 +172,14 @@ export default function TranslatorFeature() {
                         type="text"
                         icon={<SoundOutlined />}
                         onClick={() => handleSpeak(translatedText, targetLanguage)}
-                        className="text-slate-400 hover:text-blue-400 h-8 px-2"
+                        className="text-slate-400 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 h-8 px-2"
                         title="Phát âm"
                       />
                       <Button
                         type="text"
                         icon={<CopyOutlined />}
                         onClick={() => handleCopy(translatedText, "target")}
-                        className="text-slate-400 hover:text-blue-400 h-8 px-2"
+                        className="text-slate-400 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-400 h-8 px-2"
                         title="Sao chép"
                       />
                     </>
@@ -190,7 +190,7 @@ export default function TranslatorFeature() {
                 value={translatedText}
                 placeholder="Kết quả dịch sẽ hiển thị ở đây..."
                 rows={12}
-                className="resize-none bg-[#0f172a] border-slate-600 text-white"
+                className="resize-none border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white rounded-xl placeholder:text-slate-400 shadow-sm"
                 readOnly
                 showCount
                 maxLength={5000}
@@ -205,7 +205,7 @@ export default function TranslatorFeature() {
               size="middle"
               loading={loading}
               onClick={handleTranslate}
-              className="bg-blue-600 hover:bg-blue-500 border-none rounded-xl h-10 font-semibold text-white shadow-lg hover:shadow-xl shadow-blue-900/40 transition-all flex-1 sm:flex-initial min-w-[160px]"
+              className="bg-blue-600 hover:bg-blue-500 border-none rounded-xl h-10 font-semibold text-white shadow-lg hover:shadow-xl dark:shadow-blue-900/40 transition-all flex-1 sm:flex-initial min-w-[160px]"
             >
               Dịch ngay
             </Button>
@@ -214,7 +214,7 @@ export default function TranslatorFeature() {
               size="middle"
               icon={<ReloadOutlined />}
               onClick={handleClear}
-              className="h-10 border-slate-600 bg-[#0f172a] text-slate-300 hover:border-blue-500 hover:text-blue-400 hover:bg-blue-500/10 rounded-xl font-medium transition-all"
+              className="h-10 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-[#0f172a] text-slate-600 dark:text-slate-300 hover:border-blue-500 hover:text-blue-500 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-xl font-medium transition-all"
             >
               Xóa tất cả
             </Button>
@@ -223,20 +223,20 @@ export default function TranslatorFeature() {
 
         {/* Tips Section */}
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-[#1e293b] rounded-xl border border-slate-700/50 p-5">
+          <div className="bg-white dark:bg-[#1e293b] rounded-xl border border-slate-200 dark:border-slate-700/50 p-5 transition-colors duration-300">
             <div className="text-2xl mb-2">⚡</div>
-            <h3 className="text-white font-semibold mb-2">Dịch nhanh</h3>
-            <p className="text-slate-400 text-sm">Dịch thuật tức thời với độ chính xác cao</p>
+            <h3 className="text-slate-900 dark:text-white font-semibold mb-1">Dịch nhanh</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Dịch thuật tức thời với độ chính xác cao</p>
           </div>
-          <div className="bg-[#1e293b] rounded-xl border border-slate-700/50 p-5">
+          <div className="bg-white dark:bg-[#1e293b] rounded-xl border border-slate-200 dark:border-slate-700/50 p-5 transition-colors duration-300">
             <div className="text-2xl mb-2">🌐</div>
-            <h3 className="text-white font-semibold mb-2">Đa ngôn ngữ</h3>
-            <p className="text-slate-400 text-sm">Hỗ trợ nhiều ngôn ngữ phổ biến</p>
+            <h3 className="text-slate-900 dark:text-white font-semibold mb-1">Đa ngôn ngữ</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Hỗ trợ nhiều ngôn ngữ phổ biến</p>
           </div>
-          <div className="bg-[#1e293b] rounded-xl border border-slate-700/50 p-5">
+          <div className="bg-white dark:bg-[#1e293b] rounded-xl border border-slate-200 dark:border-slate-700/50 p-5 transition-colors duration-300">
             <div className="text-2xl mb-2">🔊</div>
-            <h3 className="text-white font-semibold mb-2">Phát âm</h3>
-            <p className="text-slate-400 text-sm">Nghe phát âm của văn bản dịch</p>
+            <h3 className="text-slate-900 dark:text-white font-semibold mb-1">Phát âm</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Nghe phát âm của văn bản dịch</p>
           </div>
         </div>
     </div>

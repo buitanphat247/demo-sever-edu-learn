@@ -6,13 +6,13 @@ interface FeaturesHeaderProps {
 export default function FeaturesHeader({ title, description }: FeaturesHeaderProps) {
   return (
     <div className="text-center mb-12">
-      <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">
+      <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight">
         {title}
       </h1>
-      <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+      <p className="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
         {description}
       </p>
-      <div className="w-24 h-1.5 bg-blue-600 mx-auto rounded-full mt-6"></div>
+      <div className="w-24 h-1.5 bg-blue-600 mx-auto rounded-full mt-6 shadow-sm shadow-blue-500/20"></div>
     </div>
   );
 }

@@ -3,11 +3,11 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import UserSidebar from "../components/layout/UserSidebar";
 import { usePathname } from "next/navigation";
-import { Modal, Spin, message } from "antd";
+import { Modal, Spin, message, Switch } from "antd";
 import { getUserInfo, type UserInfoResponse } from "@/lib/api/users";
 import { getUserIdFromCookie } from "@/lib/utils/cookies";
 import { useTheme } from "@/app/context/ThemeContext";
-import { MoonOutlined, SunOutlined } from "@ant-design/icons";
+import { MoonOutlined, SunOutlined, BulbOutlined, BulbFilled } from "@ant-design/icons";
 
 const pageTitles: Record<string, string> = {
   "/user": "Trang chủ",
@@ -104,14 +104,11 @@ function UserHeader({ initialUserData }: { initialUserData: InitialUserData | nu
 
         <div className="flex items-center gap-4">
           <button
-            onClick={toggleTheme}
-            className="w-10 h-10 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-yellow-500 dark:hover:text-white transition-all duration-300"
+            onClick={(e) => toggleTheme(e)}
+            className="theme-toggle-btn"
+            aria-label="Toggle Theme"
           >
-            {theme === "dark" ? (
-              <SunOutlined className="text-xl text-yellow-400" />
-            ) : (
-              <MoonOutlined className="text-xl" />
-            )}
+            {theme === "dark" ? <BulbFilled /> : <BulbOutlined />}
           </button>
           <div
             onClick={() => setIsProfileModalOpen(true)}

@@ -7,11 +7,9 @@ export const dynamic = "force-dynamic";
 export default function RootLayoutWrapper({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <DarkConfigProvider>
-        <Header />
-        <main>{children}</main>
-        <Footer />
-      </DarkConfigProvider>
+      <Header />
+      <main>{children}</main>
+      <Footer />
     </>
   );
 }

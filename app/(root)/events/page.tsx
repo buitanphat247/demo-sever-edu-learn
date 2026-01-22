@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Input, Spin, Select, App, ConfigProvider, theme } from "antd";
-import { SearchOutlined } from "@ant-design/icons";
+import { App } from "antd";
 import { getEvents, type EventResponse } from "@/lib/api/events";
 import EventCard from "@/app/components/events/EventCard";
 import EventDetailModal, { type EventDetail } from "@/app/components/events/EventDetailModal";
 import DarkPagination from "@/app/components/common/DarkPagination";
 import EventsSkeleton from "@/app/components/events/EventsSkeleton";
-import { useTheme } from "@/app/context/ThemeContext";
+import CustomInput from "@/app/components/common/CustomInput";
+import CustomSelect from "@/app/components/common/CustomSelect";
 
 export default function EventsPage() {
   const { message } = App.useApp();
@@ -21,7 +21,6 @@ export default function EventsPage() {
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>();
   const [selectedEvent, setSelectedEvent] = useState<EventDetail | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { theme: currentTheme } = useTheme();
   const pageSize = 18;
 
   // Debounce search
@@ -38,6 +37,7 @@ export default function EventsPage() {
   const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
+      setEvents([]); // Clear events to prevent overlap
       const result = await getEvents({
         page: currentPage,
         limit: pageSize,
@@ -129,7 +129,7 @@ export default function EventsPage() {
   };
 
   // Handle status change
-  const handleStatusChange = (value: string) => {
+  const handleStatusChange = (value: string | undefined) => {
     setSelectedStatus(value);
     setCurrentPage(1);
   };
@@ -160,54 +160,28 @@ export default function EventsPage() {
           </div>
 
           {/* Search & Filter Section */}
-          <ConfigProvider
-            theme={{
-              algorithm: currentTheme === "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm,
-              token: {
-                colorBgContainer: currentTheme === "dark" ? "#1e293b" : "#ffffff",
-                colorBorder: currentTheme === "dark" ? "#334155" : "#e2e8f0",
-                colorText: currentTheme === "dark" ? "#ffffff" : "#1e293b",
-                colorTextPlaceholder: currentTheme === "dark" ? "#94a3b8" : "#94a3b8",
-              },
-              components: {
-                Input: {
-                  activeBorderColor: "#3b82f6",
-                  hoverBorderColor: "#3b82f6",
-                },
-                Select: {
-                  colorPrimary: "#3b82f6",
-                  colorPrimaryHover: "#3b82f6",
-                },
-              },
-            }}
-          >
-            <div className="mb-12 max-w-4xl mx-auto">
-              <div className="flex flex-col md:flex-row gap-4 items-center">
-                <div className="flex-1 w-full">
-                  <Input
-                    prefix={<SearchOutlined className="text-slate-400 text-xl mr-2" />}
-                    placeholder="Tìm kiếm sự kiện..."
-                    allowClear
-                    onChange={(e) => handleSearch(e.target.value)}
-                    className="w-full shadow-lg shadow-black/5 dark:shadow-black/20 h-12 text-base rounded-xl border-slate-200 dark:border-slate-700"
-                  />
-                </div>
-                <div className="w-full md:w-64">
-                  <Select
-                    placeholder="Lọc theo trạng thái"
-                    allowClear
-                    className="w-full shadow-lg shadow-black/5 dark:shadow-black/20 h-12 text-base [&_.ant-select-selector]:!rounded-xl [&_.ant-select-selector]:!h-12 [&_.ant-select-selector]:!items-center"
-                    onChange={handleStatusChange}
-                    options={[
-                      { label: "Sắp diễn ra", value: "upcoming" },
-                      { label: "Đang diễn ra", value: "ongoing" },
-                      { label: "Đã kết thúc", value: "finished" },
-                    ]}
-                  />
-                </div>
-              </div>
+          <div className="mb-12 max-w-4xl mx-auto">
+            <div className="flex flex-col md:flex-row gap-4 items-center">
+              <CustomInput
+                placeholder="Tìm kiếm sự kiện..."
+                value={searchText}
+                onChange={(e) => handleSearch(e.target.value)}
+                wrapperClassName="flex-1 w-full"
+              />
+              <CustomSelect
+                placeholder="Lọc theo trạng thái"
+                value={selectedStatus}
+                onChange={handleStatusChange}
+                options={[
+                  { label: "Sắp diễn ra", value: "upcoming" },
+                  { label: "Đang diễn ra", value: "ongoing" },
+                  { label: "Đã kết thúc", value: "finished" },
+                ]}
+                wrapperClassName="w-full md:w-64"
+                allowClear
+              />
             </div>
-          </ConfigProvider>
+          </div>
 
           {loading ? (
             <EventsSkeleton />

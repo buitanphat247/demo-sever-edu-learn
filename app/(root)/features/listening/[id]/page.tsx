@@ -127,6 +127,8 @@ export default function ListeningPage() {
 
       try {
         setLoading(true);
+        setChallenges([]); // Clear challenges to prevent stale data
+        setLessonInfo(null);
         // Using apiClient configured with /api-proxy
         const response = await apiClient.get<ApiResponse>(`/challenges/by-lesson/${id}`);
 
@@ -295,49 +297,48 @@ export default function ListeningPage() {
   // --- Render Empty ---
   if (challenges.length === 0) {
     return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center text-slate-400">
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] flex items-center justify-center text-slate-500 dark:text-slate-400 transition-colors duration-500">
         <p>Không tìm thấy nội dung bài học.</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0f172a] p-4 md:p-8 font-sans text-slate-200">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] p-4 md:p-8 font-sans text-slate-800 dark:text-slate-200 transition-colors duration-500">
       <div className="container mx-auto">
         {/* Header & Breadcrumb */}
         <div className="mb-8">
-          <div className="mb-6 bg-[#1e293b] border border-slate-700/50 rounded-xl px-6 py-4 shadow-sm text-sm font-medium flex items-center flex-wrap gap-2">
-            <Link href="/" className="text-blue-400 hover:text-blue-300 transition-colors">
+          <div className="mb-6 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/50 rounded-xl px-6 py-4 shadow-sm text-sm font-medium flex items-center flex-wrap gap-2">
+            <Link href="/" className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors">
               Trang chủ
             </Link>
-            <span className="text-slate-600">/</span>
-            <Link href="/features/listening" className="text-blue-400 hover:text-blue-300 transition-colors">
+            <span className="text-slate-400 dark:text-slate-600">/</span>
+            <Link href="/features/listening" className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors">
               Học nghe
             </Link>
             {lessonInfo && (
               <>
-                <span className="text-slate-600">/</span>
-                <span className="text-slate-300 font-medium">{lessonInfo.name}</span>
+                <span className="text-slate-400 dark:text-slate-600">/</span>
+                <span className="text-slate-600 dark:text-slate-300 font-medium">{lessonInfo.name}</span>
               </>
             )}
           </div>
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 ">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">{lessonInfo ? lessonInfo.name : "Học Nghe"}</h1>
-              <p className="text-slate-400">
+              <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">{lessonInfo ? lessonInfo.name : "Học Nghe"}</h1>
+              <p className="text-slate-500 dark:text-slate-400">
                 {challenges.length > 0 ? `Câu ${currentIdx + 1} trên tổng số ${challenges.length} câu` : "Đang tải nội dung bài học..."}
               </p>
             </div>
 
-            <Button
-              icon={<IoArrowBackOutline />}
+            <button
               onClick={() => router.push("/features/listening")}
-              size="small"
-              className="bg-linear-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 border-0 text-white font-medium shadow-lg shadow-blue-900/30 hover:shadow-blue-900/50 transition-all duration-300 hover:scale-105"
+              className="group flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-500/50 transition-all duration-300 shadow-sm hover:shadow-md active:scale-95"
             >
-              Quay lại danh sách
-            </Button>
+              <IoArrowBackOutline className="text-lg transition-transform group-hover:-translate-x-1" />
+              <span className="font-semibold text-sm">Quay lại danh sách</span>
+            </button>
           </div>
         </div>
 
@@ -345,17 +346,17 @@ export default function ListeningPage() {
           {/* LEFT COLUMN - MAIN INTERACTION */}
           <div className="lg:col-span-7 space-y-6">
             {/* Shortcuts Bar */}
-            <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-3 flex flex-wrap items-center gap-4 text-sm text-slate-400">
-              <div className="flex items-center gap-2 text-blue-400">
+            <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3 flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400 shadow-sm">
+              <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
                 <FaKeyboard className="text-xl" />
                 <span className="font-semibold">Phím tắt</span>
               </div>
               <div className="flex items-center gap-2">
-                <kbd className="bg-slate-700 text-slate-200 px-2 py-0.5 rounded text-xs font-bold font-mono border border-slate-600">Enter</kbd>
+                <kbd className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-2 py-0.5 rounded text-xs font-bold font-mono border border-slate-300 dark:border-slate-600">Enter</kbd>
                 <span>Kiểm tra / Tiếp tục</span>
               </div>
               <div className="flex items-center gap-2">
-                <kbd className="bg-slate-700 text-slate-200 px-2 py-0.5 rounded text-xs font-bold font-mono border border-slate-600">Ctrl</kbd>
+                <kbd className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-2 py-0.5 rounded text-xs font-bold font-mono border border-slate-300 dark:border-slate-600">Ctrl</kbd>
                 <span>Phát lại âm thanh</span>
               </div>
             </div>
@@ -368,7 +369,7 @@ export default function ListeningPage() {
             </div>
 
             {/* Audio Player Card */}
-            <div className="bg-[#1e293b] rounded-2xl shadow-xl border border-slate-700 p-6 relative overflow-hidden">
+            <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 relative overflow-hidden">
               {/* Background Glow Effect */}
               <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-blue-500 via-sky-500 to-indigo-500 opacity-70"></div>
 
@@ -392,11 +393,11 @@ export default function ListeningPage() {
                 </button>
 
                 <div className="flex-1 space-y-2">
-                  <div className="flex justify-between text-xs font-mono text-slate-400">
+                  <div className="flex justify-between text-xs font-mono text-slate-500 dark:text-slate-400">
                     <span>{formatTime(currentTime)}</span>
                     <span>{formatTime(duration)}</span>
                   </div>
-                  <div className="relative w-full h-2 bg-slate-700 rounded-full cursor-pointer group">
+                  <div className="relative w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-full cursor-pointer group">
                     <div
                       className="absolute top-0 left-0 h-full bg-blue-500 rounded-full"
                       style={{ width: `${(currentTime / (duration || 1)) * 100}%` }}
@@ -418,17 +419,17 @@ export default function ListeningPage() {
                 </div>
 
                 <div className="flex items-center gap-3 text-slate-400">
-                  <button className="hover:text-blue-400 transition">
+                  <button className="hover:text-blue-500 dark:hover:text-blue-400 transition">
                     <FaVolumeUp />
                   </button>
-                  <button className="hover:text-blue-400 transition">
+                  <button className="hover:text-blue-500 dark:hover:text-blue-400 transition">
                     <FaEllipsisV />
                   </button>
                 </div>
 
                 <div
                   onClick={changeSpeed}
-                  className="bg-slate-700 border border-slate-600 text-slate-300 text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer hover:bg-slate-600 hover:text-white transition select-none min-w-[80px] text-center"
+                  className="bg-slate-100 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 text-xs font-bold px-3 py-1.5 rounded-lg cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-600 hover:text-slate-800 dark:hover:text-white transition select-none min-w-[80px] text-center"
                 >
                   {playbackSpeed}x
                 </div>
@@ -438,7 +439,7 @@ export default function ListeningPage() {
             {/* Input Area */}
             <div className="space-y-4">
               <div className="flex justify-between items-end">
-                <h3 className="font-bold text-slate-300 flex items-center gap-2">
+                <h3 className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
                   <span className="w-1 h-5 bg-blue-500 rounded-full block"></span>
                   Nghe và gõ lại câu:
                 </h3>
@@ -446,13 +447,13 @@ export default function ListeningPage() {
 
               <div className="relative group">
                 <textarea
-                  className={`w-full p-5 text-lg bg-[#1e293b] border-2 rounded-xl focus:outline-none transition-all resize-none shadow-inner
+                  className={`w-full p-5 text-lg bg-white dark:bg-[#1e293b] border-2 rounded-xl focus:outline-none transition-all resize-none shadow-inner
                       ${
                         feedback === "correct"
-                          ? "border-emerald-500/50 bg-emerald-950/20 text-emerald-200"
+                          ? "border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-200"
                           : feedback === "incorrect"
-                          ? "border-red-500/50 bg-red-950/20 text-red-200"
-                          : "border-slate-700 focus:border-blue-500/50 focus:bg-[#253248] text-slate-200"
+                          ? "border-red-500/50 bg-red-50 dark:bg-red-950/20 text-red-700 dark:text-red-200"
+                          : "border-slate-200 dark:border-slate-700 focus:border-blue-500/50 focus:bg-slate-50 dark:focus:bg-[#253248] text-slate-800 dark:text-slate-200"
                       }
                     `}
                   rows={3}
@@ -467,7 +468,7 @@ export default function ListeningPage() {
                   }}
                 />
                 <div className={`absolute bottom-3 right-3 transition-opacity duration-300 ${userInput ? "opacity-100" : "opacity-0"}`}>
-                  <span className="text-xs text-slate-500 font-mono">Press Enter ↵</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500 font-mono">Press Enter ↵</span>
                 </div>
               </div>
 
@@ -480,7 +481,7 @@ export default function ListeningPage() {
                 </button>
                 <button
                   onClick={skipSentence}
-                  className="bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white px-6 py-2.5 rounded-lg font-semibold shadow-sm transition-all transform active:scale-95 flex items-center gap-2 border border-slate-600"
+                  className="bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-6 py-2.5 rounded-lg font-semibold shadow-sm transition-all transform active:scale-95 flex items-center gap-2 border border-slate-300 dark:border-slate-600"
                 >
                   Bỏ qua <IoMdSkipForward />
                 </button>
@@ -495,8 +496,8 @@ export default function ListeningPage() {
                       relative overflow-hidden rounded-2xl p-6 min-h-[100px] flex flex-col items-center justify-center border-2
                       ${
                         feedback === "correct"
-                          ? "bg-[#1e293b] border-emerald-500/50 shadow-[0_0_30px_-5px_rgba(16,185,129,0.2)]"
-                          : "bg-[#1e293b] border-slate-700 border-dashed"
+                          ? "bg-white dark:bg-[#1e293b] border-emerald-500/50 shadow-[0_0_30px_-5px_rgba(16,185,129,0.2)]"
+                          : "bg-white dark:bg-[#1e293b] border-slate-300 dark:border-slate-700 border-dashed"
                       }
                  `}
               >
@@ -510,7 +511,7 @@ export default function ListeningPage() {
 
                 {/* Translation appearing effect */}
                 {feedback === "correct" && (
-                  <div className="mt-4 text-center text-slate-400 italic font-light animate-in fade-in slide-in-from-bottom-2 duration-700">
+                  <div className="mt-4 text-center text-slate-500 dark:text-slate-400 italic font-light animate-in fade-in slide-in-from-bottom-2 duration-700">
                     {currentChallenge.translateText_challenges || "Không có dịch nghĩa"}
                   </div>
                 )}
@@ -520,9 +521,9 @@ export default function ListeningPage() {
 
           {/* RIGHT COLUMN - TRANSCRIPT */}
           <div className="lg:col-span-5 h-[calc(100vh-8rem)] sticky top-4">
-            <div className="bg-[#1e293b] rounded-2xl shadow-xl border border-slate-700 overflow-hidden h-full flex flex-col">
-              <div className="p-4 border-b border-slate-700 flex flex-col sm:flex-row justify-between items-center bg-[#1e293b] gap-3">
-                <div className="flex items-center gap-2 font-bold text-slate-200">
+            <div className="bg-white dark:bg-[#1e293b] rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden h-full flex flex-col">
+              <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center bg-slate-50 dark:bg-[#1e293b] gap-3">
+                <div className="flex items-center gap-2 font-bold text-slate-700 dark:text-slate-200">
                   <FaListAlt className="text-blue-500" /> Transcript
                 </div>
                 <div className="flex gap-2">
@@ -531,7 +532,7 @@ export default function ListeningPage() {
                     className={`text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 transition border ${
                       showAppTranscript
                         ? "bg-blue-600 border-blue-500 text-white"
-                        : "bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white"
+                        : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white"
                     }`}
                   >
                     {showAppTranscript ? <FaEyeSlash /> : <FaEye />} Transcript
@@ -541,7 +542,7 @@ export default function ListeningPage() {
                     className={`text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 transition border ${
                       showAppTranslation
                         ? "bg-orange-600 border-orange-500 text-white"
-                        : "bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700 hover:text-white"
+                        : "bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-800 dark:hover:text-white"
                     }`}
                   >
                     <FaLanguage /> Dịch
@@ -549,7 +550,7 @@ export default function ListeningPage() {
                 </div>
               </div>
 
-              <div className="p-4 overflow-y-auto space-y-3 flex-1 scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent">
+              <div className="p-4 overflow-y-auto space-y-3 flex-1 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
                 {challenges.map((s, idx) => {
                   const isCurrent = idx === currentIdx;
                   const itemHistory = history[idx] || { feedback: "none", submittedInput: "" };
@@ -561,8 +562,8 @@ export default function ListeningPage() {
                       className={`p-4 rounded-xl border transition-all relative overflow-hidden
                                     ${
                                       isCurrent
-                                        ? "border-blue-500/50 bg-blue-900/20 shadow-[inset_0_0_20px_rgba(59,130,246,0.1)]"
-                                        : "border-slate-700/50 bg-[#243146] opacity-70"
+                                        ? "border-blue-500/50 bg-blue-50 dark:bg-blue-900/20 shadow-[inset_0_0_20px_rgba(59,130,246,0.1)]"
+                                        : "border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-[#243146] opacity-90 dark:opacity-70"
                                     }
                                 `}
                     >
@@ -570,13 +571,13 @@ export default function ListeningPage() {
 
                       <div
                         className={`text-lg font-medium leading-relaxed font-sans
-                                     ${isCurrent ? "text-blue-300" : "text-slate-500"}
+                                     ${isCurrent ? "text-blue-700 dark:text-blue-300" : "text-slate-600 dark:text-slate-500"}
                                 `}
                       >
                         <MaskedText text={s.content_challenges} revealed={isRevealed} userInput={itemHistory.submittedInput} />
                       </div>
                       {showAppTranslation && (
-                        <div className="mt-3 text-sm text-slate-500 border-t border-slate-700/50 pt-2 italic">{s.translateText_challenges}</div>
+                        <div className="mt-3 text-sm text-slate-500 dark:text-slate-500 border-t border-slate-200 dark:border-slate-700/50 pt-2 italic">{s.translateText_challenges}</div>
                       )}
                     </div>
                   );

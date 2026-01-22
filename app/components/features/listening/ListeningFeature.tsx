@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SearchOutlined } from "@ant-design/icons";
-import { App, Input, Skeleton, Select } from "antd";
+import { App, Skeleton } from "antd";
 import { getLessons, type Lesson } from "@/lib/api/lessons";
 import LessonCard from "@/app/components/listening/LessonCard";
 import DarkPagination from "@/app/components/common/DarkPagination";
+import CustomInput from "@/app/components/common/CustomInput";
+import CustomSelect from "@/app/components/common/CustomSelect";
 
 export default function ListeningFeature() {
   const { message } = App.useApp();
@@ -37,6 +38,7 @@ export default function ListeningFeature() {
   const fetchLessons = async () => {
     const startTime = Date.now();
     setLoading(true);
+    setLessons([]); // Clear previous lessons to prevent overlap overlap or stale state flashing (though normally masked by loading UI)
     try {
       const result = await getLessons({
         page: currentPage,
@@ -74,76 +76,77 @@ export default function ListeningFeature() {
       {/* Search and Filters */}
       <div className="max-w-4xl mx-auto mb-12">
         <div className="flex flex-col md:flex-row gap-4 items-center">
-          <div className="flex-1 w-full">
-            <Input
-              prefix={<SearchOutlined className="text-slate-400 text-xl mr-2" />}
-              placeholder="Tìm kiếm bài học..."
-              allowClear
-              onChange={(e) => setSearchText(e.target.value)}
-              className="w-full shadow-lg shadow-black/20"
-            />
-          </div>
-          <div className="w-full md:w-48">
-            <Select
-              placeholder="Chọn cấp độ"
-              allowClear
-              className="w-full shadow-lg shadow-black/20"
-              onChange={(value) => {
-                setSelectedLevel(value);
-                setCurrentPage(1);
-              }}
-              options={[
-                { label: "A1", value: "A1" },
-                { label: "A2", value: "A2" },
-                { label: "B1", value: "B1" },
-                { label: "B2", value: "B2" },
-                { label: "C1", value: "C1" },
-                { label: "C2", value: "C2" },
-                { label: "Beginner", value: "beginner" },
-                { label: "Intermediate", value: "intermediate" },
-                { label: "Advanced", value: "advanced" },
-              ]}
-            />
-          </div>
-          <div className="w-full md:w-48">
-            <Select
-              placeholder="Chọn ngôn ngữ"
-              allowClear
-              className="w-full shadow-lg shadow-black/20"
-              onChange={(value) => {
-                setSelectedLanguage(value);
-                setCurrentPage(1);
-              }}
-              options={[
-                { label: "Tiếng Anh", value: "en" },
-                { label: "Tiếng Việt", value: "vi" },
-                { label: "Tiếng Pháp", value: "fr" },
-                { label: "Tiếng Đức", value: "de" },
-                { label: "Tiếng Tây Ban Nha", value: "es" },
-              ]}
-            />
-          </div>
+          <CustomInput
+            placeholder="Tìm kiếm bài học..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            wrapperClassName="flex-1 w-full"
+          />
+          <CustomSelect
+            placeholder="Chọn cấp độ"
+            value={selectedLevel}
+            onChange={(value) => {
+              setSelectedLevel(value);
+              setCurrentPage(1);
+            }}
+            options={[
+              { label: "A1", value: "A1" },
+              { label: "A2", value: "A2" },
+              { label: "B1", value: "B1" },
+              { label: "B2", value: "B2" },
+              { label: "C1", value: "C1" },
+              { label: "C2", value: "C2" },
+              { label: "Beginner", value: "beginner" },
+              { label: "Intermediate", value: "intermediate" },
+              { label: "Advanced", value: "advanced" },
+            ]}
+            wrapperClassName="w-full md:w-48"
+            allowClear
+          />
+          <CustomSelect
+            placeholder="Chọn ngôn ngữ"
+            value={selectedLanguage}
+            onChange={(value) => {
+              setSelectedLanguage(value);
+              setCurrentPage(1);
+            }}
+            options={[
+              { label: "Tiếng Anh", value: "en" },
+              { label: "Tiếng Việt", value: "vi" },
+              { label: "Tiếng Pháp", value: "fr" },
+              { label: "Tiếng Đức", value: "de" },
+              { label: "Tiếng Tây Ban Nha", value: "es" },
+            ]}
+            wrapperClassName="w-full md:w-48"
+            allowClear
+          />
         </div>
       </div>
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
           {Array.from({ length: 12 }).map((_, index) => (
-            <div key={index} className="bg-[#1e293b] rounded-2xl border border-slate-700/50 overflow-hidden h-full flex flex-col">
-              <div className="flex-1 p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <Skeleton.Button active className="rounded-full" style={{ width: 60, height: 24 }} />
-                  <Skeleton.Button active className="rounded-full" style={{ width: 40, height: 40 }} />
+            <div key={index} className="bg-white dark:bg-[#1e293b] rounded-2xl border border-slate-200 dark:border-slate-700/50 overflow-hidden h-full flex flex-col transition-colors duration-300 shadow-sm">
+              <div className="flex-1 p-6 animate-pulse">
+                <div className="flex justify-between items-start mb-6">
+                  <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
+                  <div className="h-10 w-10 bg-slate-200 dark:bg-slate-700 rounded-full"></div>
                 </div>
-                <Skeleton active title={{ width: '90%', style: { marginTop: 0 } }} paragraph={{ rows: 2, width: ['100%', '80%'] }} />
-                <div className="mt-4 space-y-2">
-                  <Skeleton active paragraph={false} title={{ width: '60%', style: { margin: 0, height: 16 } }} />
-                  <Skeleton active paragraph={false} title={{ width: '70%', style: { margin: 0, height: 16 } }} />
+                
+                <div className="space-y-3 mb-6">
+                  <div className="h-5 w-full bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                  <div className="h-5 w-3/4 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                </div>
+
+                <div className="space-y-2.5">
+                  <div className="h-4 w-1/2 bg-slate-100 dark:bg-slate-700/50 rounded"></div>
+                  <div className="h-4 w-2/3 bg-slate-100 dark:bg-slate-700/50 rounded"></div>
                 </div>
               </div>
-              <div className="border-t border-slate-700/50 flex justify-between items-center p-6 bg-slate-800/30">
-                <Skeleton.Button active size="small" style={{ width: 120 }} />
-                <Skeleton.Button active size="small" style={{ width: 24, height: 24 }} />
+              
+              <div className="border-t border-slate-200 dark:border-slate-700/50 flex justify-between items-center p-4 bg-slate-50 dark:bg-slate-800/30 px-6">
+                 <div className="h-8 w-24 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
+                 <div className="h-8 w-8 bg-slate-200 dark:bg-slate-700 rounded-lg"></div>
               </div>
             </div>
           ))}
@@ -175,7 +178,7 @@ export default function ListeningFeature() {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               showTotal={(total, range) => (
-                <span className="text-slate-300">
+                <span className="text-slate-600 dark:text-slate-300">
                   {range[0]}-{range[1]} của {total} bài học
                 </span>
               )}
@@ -183,8 +186,8 @@ export default function ListeningFeature() {
           )}
         </>
       ) : (
-        <div className="text-center py-20 bg-[#1e293b]/50 rounded-3xl border border-slate-700/50 border-dashed">
-          <p className="text-slate-400 text-lg">
+        <div className="text-center py-20 bg-white/50 dark:bg-[#1e293b]/50 rounded-3xl border border-slate-200 dark:border-slate-700/50 border-dashed transition-colors duration-300">
+          <p className="text-slate-500 dark:text-slate-400 text-lg">
             {debouncedSearchQuery || selectedLevel || selectedLanguage
               ? "Không tìm thấy bài học nào phù hợp"
               : "Chưa có bài học nào"}

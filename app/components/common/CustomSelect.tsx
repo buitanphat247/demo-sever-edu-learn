@@ -1,0 +1,138 @@
+"use client";
+
+import { useState, useRef, useEffect } from "react";
+
+interface SelectOption {
+  label: string;
+  value: string;
+}
+
+interface CustomSelectProps {
+  placeholder?: string;
+  value?: string;
+  onChange?: (value: string | undefined) => void;
+  options?: SelectOption[];
+  wrapperClassName?: string;
+  selectClassName?: string;
+  allowClear?: boolean;
+}
+
+export default function CustomSelect({
+  placeholder = "Chọn...",
+  value,
+  onChange,
+  options = [],
+  wrapperClassName = "w-full",
+  selectClassName = "",
+  allowClear = true,
+}: CustomSelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find((opt) => opt.value === value);
+
+  const handleSelect = (optionValue: string) => {
+    if (value === optionValue && allowClear) {
+      onChange?.(undefined);
+    } else {
+      onChange?.(optionValue);
+    }
+    setIsOpen(false);
+  };
+
+  return (
+    <div className={`relative ${wrapperClassName}`} ref={selectRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`
+          w-full h-10 px-4 rounded-lg
+          bg-white dark:bg-[#1e293b]
+          border border-slate-200 dark:border-slate-700/50
+          text-left
+          shadow-lg shadow-blue-500/5 dark:shadow-black/20
+          focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/50
+          transition-all duration-200
+          flex items-center justify-between
+          ${selectClassName}
+        `}
+      >
+        <span
+          className={`
+            ${selectedOption ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'}
+            truncate
+          `}
+        >
+          {selectedOption ? selectedOption.label : placeholder}
+        </span>
+        <div className="flex items-center gap-2 ml-2 flex-shrink-0">
+          {value && allowClear && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onChange?.(undefined);
+              }}
+              className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className={`h-4 w-4 text-slate-400 dark:text-slate-500 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg max-h-60 overflow-auto">
+          {options.length > 0 ? (
+            options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => handleSelect(option.value)}
+                className={`
+                  w-full px-4 py-2 text-left
+                  hover:bg-slate-50 dark:hover:bg-slate-700/50
+                  transition-colors
+                  ${value === option.value ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-slate-700 dark:text-slate-200'}
+                `}
+              >
+                {option.label}
+              </button>
+            ))
+          ) : (
+            <div className="px-4 py-2 text-slate-500 dark:text-slate-400 text-sm">
+              Không có tùy chọn
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

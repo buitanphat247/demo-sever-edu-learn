@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi">
+    <html lang="vi" suppressHydrationWarning>
       <head>
         <link
           rel="stylesheet"
@@ -33,6 +33,41 @@ export default function RootLayout({
           integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
           crossOrigin="anonymous"
           referrerPolicy="no-referrer"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var html = document.documentElement;
+                  // Disable transitions initially to prevent flash
+                  html.classList.add('no-transitions');
+                  
+                  var theme = localStorage.getItem('theme');
+                  if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    html.classList.add('dark');
+                  }
+                  
+                  // Re-enable transitions immediately after DOM content is loaded
+                  // interactive (DOMContentLoaded) is sooner than complete (window.load)
+                  var removeNoTransitions = function() {
+                      // RequestAnimationFrame ensures the paint with 'dark' class has happened
+                      requestAnimationFrame(function() {
+                        setTimeout(function() {
+                          html.classList.remove('no-transitions');
+                        }, 0);
+                      });
+                  };
+
+                  if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', removeNoTransitions);
+                  } else {
+                    removeNoTransitions();
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
         />
       </head>
       <body
