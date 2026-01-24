@@ -315,11 +315,11 @@ const ClassExercisesTab = memo(function ClassExercisesTab({
         // Navigate directly to submission page without confirmation
         router.push(`/user/classes/${classId}/exercises/${exercise.id}/submit`);
       } else {
-        // Admin mode: mở modal chi tiết như cũ
-        handleViewDetail(exercise);
+        // Admin mode: Chuyển đến trang chi tiết bài nộp
+        router.push(`/admin/classes/${classId}/exercises/${exercise.id}`);
       }
     },
-    [router, classId, readOnly, handleViewDetail]
+    [router, classId, readOnly]
   );
 
   const handleDownloadFiles = useCallback(async () => {

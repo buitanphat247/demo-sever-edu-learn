@@ -86,30 +86,36 @@ function SuperAdminHeader({ initialUserData }: { initialUserData: InitialUserDat
     return parts.length >= 2 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : name.substring(0, 2).toUpperCase();
   }, []);
 
-  const displayName = useMemo(() => userInfo?.username || initialUserData?.username || "Super Admin", [userInfo?.username, initialUserData?.username]);
+  const displayName = useMemo(
+    () => userInfo?.username || initialUserData?.username || "Super Admin",
+    [userInfo?.username, initialUserData?.username],
+  );
   const displayRole = useMemo(
     () => userInfo?.role?.role_name || initialUserData?.role_name || "Quản trị viên",
-    [userInfo?.role?.role_name, initialUserData?.role_name]
+    [userInfo?.role?.role_name, initialUserData?.role_name],
   );
 
   const displayInitials = useMemo(() => getInitials(displayName), [displayName, getInitials]);
 
   return (
     <>
-      <header className="bg-white h-16 flex items-center justify-between px-6 shadow-sm border-b border-gray-200">
+      <header className="bg-white dark:bg-gray-900 h-16 flex items-center justify-between px-6 shadow-sm border-b border-gray-200 dark:border-gray-800 transition-colors duration-300">
         <div className="flex items-center gap-2">
-          <Breadcrumb items={getBreadcrumbItems} />
+          {/* Include dark mode specific classes for breadcrumbs via global styles or parent config, 
+              but usually AntD breadcrumbs need ConfigProvider theme. 
+              Here we just trust standard AntD dark theme or wrapper class. */}
+          <Breadcrumb items={getBreadcrumbItems} className="dark:text-gray-300" />
         </div>
 
         <div className="flex items-center gap-4">
           <div
             onClick={() => setIsProfileModalOpen(true)}
-            className="flex items-center gap-3 pl-4 border-l border-gray-300 cursor-pointer hover:opacity-80 transition-opacity"
+            className="flex items-center gap-3 pl-4 border-l border-gray-300 dark:border-gray-700 cursor-pointer hover:opacity-80 transition-opacity"
           >
             <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">{displayInitials}</div>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-gray-800">{displayName}</span>
-              <span className="text-xs text-gray-600">{displayRole}</span>
+              <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">{displayName}</span>
+              <span className="text-xs text-gray-600 dark:text-gray-400">{displayRole}</span>
             </div>
           </div>
         </div>
@@ -124,26 +130,26 @@ function SuperAdminHeader({ initialUserData }: { initialUserData: InitialUserDat
                   {getInitials(userInfo.fullname || userInfo.username || "SA")}
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-gray-800">{userInfo.fullname || userInfo.username}</h3>
-                  <p className="text-gray-600">{userInfo.role?.role_name || "Quản trị viên"}</p>
+                  <h3 className="text-xl font-bold text-gray-800 dark:text-gray-100">{userInfo.fullname || userInfo.username}</h3>
+                  <p className="text-gray-600 dark:text-gray-400">{userInfo.role?.role_name || "Quản trị viên"}</p>
                 </div>
               </div>
-              <div className="border-t border-gray-200 pt-4 space-y-3">
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3">
                 <div>
-                  <span className="text-sm text-gray-500">Tên đăng nhập:</span>
-                  <p className="text-gray-800 font-medium">{userInfo.username || "Chưa cập nhật"}</p>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Tên đăng nhập:</span>
+                  <p className="text-gray-800 dark:text-gray-200 font-medium">{userInfo.username || "Chưa cập nhật"}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-500">Email:</span>
-                  <p className="text-gray-800 font-medium">{userInfo.email || "Chưa cập nhật"}</p>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Email:</span>
+                  <p className="text-gray-800 dark:text-gray-200 font-medium">{userInfo.email || "Chưa cập nhật"}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-500">Số điện thoại:</span>
-                  <p className="text-gray-800 font-medium">{userInfo.phone || "Chưa cập nhật"}</p>
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Số điện thoại:</span>
+                  <p className="text-gray-800 dark:text-gray-200 font-medium">{userInfo.phone || "Chưa cập nhật"}</p>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-500">Ngày tạo:</span>
-                  <p className="text-gray-800 font-medium">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">Ngày tạo:</span>
+                  <p className="text-gray-800 dark:text-gray-200 font-medium">
                     {userInfo.created_at ? new Date(userInfo.created_at).toLocaleDateString("vi-VN") : "Chưa có thông tin"}
                   </p>
                 </div>
@@ -158,16 +164,24 @@ function SuperAdminHeader({ initialUserData }: { initialUserData: InitialUserDat
   );
 }
 
-export default function SuperAdminLayoutClient({ children, initialUserData }: { children: React.ReactNode; initialUserData: InitialUserData | null }) {
+export default function SuperAdminLayoutClient({
+  children,
+  initialUserData,
+}: {
+  children: React.ReactNode;
+  initialUserData: InitialUserData | null;
+}) {
   const pathname = usePathname();
   const isDocumentCrawlPage = pathname === "/super-admin/documents-crawl";
 
   return (
-    <div className="super-admin flex h-screen bg-gray-100 overflow-hidden">
+    <div className="super-admin flex h-screen bg-gray-100 dark:bg-zinc-900 overflow-hidden transition-colors duration-300">
       <SuperAdminSidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <SuperAdminHeader initialUserData={initialUserData} />
-        <main className={`flex-1 overflow-y-auto bg-gray-50 p-6 ${isDocumentCrawlPage ? "pb-0" : ""}`}>{children}</main>
+        <main className={`flex-1 overflow-y-auto bg-gray-50 dark:bg-black p-6 ${isDocumentCrawlPage ? "pb-0" : ""} transition-colors duration-300`}>
+          {children}
+        </main>
       </div>
     </div>
   );

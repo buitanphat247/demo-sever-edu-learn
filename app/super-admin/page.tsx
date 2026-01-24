@@ -85,6 +85,8 @@ const dashboardItems = [
 
 // Stats sẽ được fetch từ API
 
+// ... (previous imports)
+
 function WelcomeBanner() {
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -94,7 +96,7 @@ function WelcomeBanner() {
   };
 
   return (
-    <div className="bg-linear-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white border border-gray-200 hover:shadow-lg transition-shadow duration-300">
+    <div className="bg-linear-to-r from-blue-600 to-indigo-600 rounded-2xl p-8 text-white border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow duration-300">
       <h1 className="text-3xl font-bold mb-2">{getGreeting()}, Super Admin!</h1>
       <p className="text-blue-100 text-lg">Chào mừng bạn quay trở lại. Dưới đây là tổng quan về hệ thống của bạn.</p>
     </div>
@@ -107,23 +109,25 @@ function StatCard({
   icon: IconComponent,
   color,
   bgColor,
+  darkBgColor,
 }: {
   label: string;
   value: number;
   icon: any;
   color: string;
   bgColor: string;
+  darkBgColor?: string;
 }) {
   return (
-    <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-200">
+    <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 border border-gray-200 dark:border-slate-700 dark:bg-slate-800">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-gray-600 text-sm mb-1">{label}</p>
-          <p className="text-3xl font-bold text-gray-800">
+          <p className="text-gray-600 dark:text-gray-400 text-sm mb-1">{label}</p>
+          <p className="text-3xl font-bold text-gray-800 dark:text-gray-100">
             <CountUp start={0} end={value} duration={2} separator="," decimals={0} />
           </p>
         </div>
-        <div className={`${bgColor} p-4 rounded-lg`}>
+        <div className={`${bgColor} ${darkBgColor || ""} p-4 rounded-lg`}>
           <IconComponent className={`${color} text-2xl`} />
         </div>
       </div>
@@ -131,7 +135,7 @@ function StatCard({
   );
 }
 
-function StatisticsCards({ stats }: { stats: { label: string; value: number; icon: any; color: string; bgColor: string }[] }) {
+function StatisticsCards({ stats }: { stats: any[] }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
@@ -173,29 +177,33 @@ export default function SuperAdminDashboard() {
       label: "Tài liệu Crawl",
       value: stats.documents,
       icon: CloudDownloadOutlined,
-      color: "text-blue-600",
+      color: "text-blue-600 dark:text-blue-400",
       bgColor: "bg-blue-50",
+      darkBgColor: "dark:bg-blue-900/20",
     },
     {
       label: "Tài khoản",
       value: stats.users,
       icon: UserOutlined,
-      color: "text-green-600",
+      color: "text-green-600 dark:text-green-400",
       bgColor: "bg-green-50",
+      darkBgColor: "dark:bg-green-900/20",
     },
     {
       label: "Tin tức",
       value: stats.news,
       icon: BellOutlined,
-      color: "text-purple-600",
+      color: "text-purple-600 dark:text-purple-400",
       bgColor: "bg-purple-50",
+      darkBgColor: "dark:bg-purple-900/20",
     },
     {
       label: "Sự kiện",
       value: stats.events,
       icon: CalendarOutlined,
-      color: "text-pink-600",
+      color: "text-pink-600 dark:text-pink-400",
       bgColor: "bg-pink-50",
+      darkBgColor: "dark:bg-pink-900/20",
     },
   ];
 
@@ -206,16 +214,20 @@ export default function SuperAdminDashboard() {
       <StatisticsCards stats={statsCards} />
 
       <div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Chức năng quản lý</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Chức năng quản lý</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {dashboardItems.map((item, index) => {
             const IconComponent = item.icon;
+            // Map light icon bg to a suitable dark one
+            // We can infer dark classes or add them to dashboardItems.
+            // For simplicity, let's just make the card body dark.
+
             return (
               <Card
                 key={index}
                 hoverable
                 onClick={() => router.push(item.path)}
-                className="group cursor-pointer border border-gray-200 hover:shadow-lg transition-shadow duration-300 overflow-hidden"
+                className="group cursor-pointer border border-gray-200 dark:border-slate-700 hover:shadow-lg transition-shadow duration-300 overflow-hidden dark:bg-slate-800"
                 styles={{
                   body: { padding: 0 },
                 }}
@@ -225,18 +237,18 @@ export default function SuperAdminDashboard() {
                   <div className="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full -ml-12 -mb-12"></div>
                   <div className="relative z-10">
                     <div
-                      className={`${item.iconBg} w-16 h-16 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
+                      className={`${item.iconBg} dark:bg-black/20 w-16 h-16 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}
                     >
-                      <span className="text-black">
-                        <IconComponent className={`text-3xl ${item.iconColor}`} />
+                      <span className="text-black dark:text-white">
+                        <IconComponent className={`text-3xl ${item.iconColor} dark:text-white`} />
                       </span>
                     </div>
                     <h3 className="text-xl font-bold mb-2">{item.title}</h3>
                     <p className="text-blue-100 text-sm">{item.description}</p>
                   </div>
                 </div>
-                <div className="p-6 bg-white">
-                  <div className="flex items-center justify-between text-gray-600 group-hover:text-blue-600 transition-colors">
+                <div className="p-6 bg-white dark:bg-slate-800 transition-colors duration-300">
+                  <div className="flex items-center justify-between text-gray-600 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                     <span className="text-sm font-medium">Truy cập ngay</span>
                     <ArrowRightOutlined className="group-hover:translate-x-1 transition-transform" />
                   </div>
